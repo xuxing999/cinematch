@@ -1,4 +1,4 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import './globals.css'
 import { AuthProvider } from '@/components/providers/AuthProvider'
 import { RealtimeProvider } from '@/components/providers/RealtimeProvider'
@@ -10,7 +10,11 @@ export const metadata: Metadata = {
   description: '基於電影優惠與觀影意圖的快閃社交工具。找影伴，省錢看電影，24小時後訊息自動銷毀。',
   keywords: ['電影', '社交', '優惠', '揪團', '快閃', 'CineMatch'],
   authors: [{ name: 'CineMatch Team' }],
-  viewport: 'width=device-width, initial-scale=1',
+}
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
   themeColor: '#e50914',
 }
 

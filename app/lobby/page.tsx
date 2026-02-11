@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { useAuthContext } from '@/components/providers/AuthProvider'
 import { useSignals } from '@/lib/hooks/useSignals'
@@ -13,7 +13,7 @@ import Button from '@/components/ui/Button'
 import { Radio, Plus, Filter, RefreshCw } from 'lucide-react'
 import { cn } from '@/lib/utils/cn'
 
-export default function LobbyPage() {
+function LobbyContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { user } = useAuthContext()
@@ -80,7 +80,7 @@ export default function LobbyPage() {
   return (
     <div className="min-h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
+        {/* 標題 */}
         <div className="mb-8 space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
@@ -209,5 +209,17 @@ export default function LobbyPage() {
         </Modal>
       </div>
     </div>
+  )
+}
+
+export default function LobbyPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-gray-400">載入中...</div>
+      </div>
+    }>
+      <LobbyContent />
+    </Suspense>
   )
 }
