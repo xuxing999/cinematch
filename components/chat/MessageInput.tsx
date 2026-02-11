@@ -18,70 +18,67 @@ export default function MessageInput({ onSend, disabled }: MessageInputProps) {
     if (!trimmed || sending) return
 
     setSending(true)
-    setContent('') // 立即清空輸入框，提升體驗
+    setContent('')
 
     try {
       await onSend(trimmed)
     } catch (error) {
       console.error('發送訊息失敗:', error)
-      setContent(trimmed) // 失敗時恢復內容
+      setContent(trimmed)
     } finally {
       setSending(false)
     }
   }
 
   const handleKeyPress = (e: KeyboardEvent<HTMLTextAreaElement>) => {
-    // Shift + Enter = 換行
-    // Enter = 發送
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
       handleSend()
     }
   }
 
+  const canSend = content.trim() && !disabled && !sending
+
   return (
-    <div className="border-t border-dark-100 bg-dark-200 p-4">
+    <div className="flex-shrink-0 border-t border-dark-50/50 bg-dark-200 px-4 py-3">
       <div className="flex items-end gap-3">
         {/* 輸入框 */}
         <textarea
           value={content}
           onChange={(e) => setContent(e.target.value)}
           onKeyPress={handleKeyPress}
-          placeholder="輸入訊息... (Enter 發送，Shift+Enter 換行)"
+          placeholder="輸入訊息..."
           disabled={disabled || sending}
           rows={1}
           className={cn(
-            'flex-1 px-4 py-3 bg-dark-300 border border-dark-100 rounded-lg text-white placeholder-gray-500',
-            'focus:outline-none focus:ring-2 focus:ring-neon-red focus:border-transparent',
-            'transition-all duration-300 resize-none max-h-32',
+            'flex-1 px-4 py-3 bg-dark-300 border border-dark-50/60 rounded-lg',
+            'text-foreground text-sm placeholder-stone-500',
+            'focus:outline-none focus:border-neon-red/50 focus:ring-1 focus:ring-neon-red/20',
+            'transition-all duration-200 resize-none',
             'disabled:opacity-50 disabled:cursor-not-allowed'
           )}
-          style={{
-            minHeight: '48px',
-            maxHeight: '128px',
-          }}
+          style={{ minHeight: '44px', maxHeight: '120px' }}
         />
 
-        {/* 發送按鈕 */}
+        {/* 發送按鈕 — 44px 觸控區 */}
         <button
           type="button"
           onClick={handleSend}
-          disabled={!content.trim() || disabled || sending}
+          disabled={!canSend}
           className={cn(
-            'p-3 rounded-lg transition-all duration-300',
-            'disabled:opacity-50 disabled:cursor-not-allowed',
-            content.trim() && !disabled && !sending
-              ? 'bg-neon-red text-white shadow-neon-red hover:scale-105'
-              : 'bg-dark-100 text-gray-500'
+            'min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg transition-all duration-200',
+            'disabled:opacity-40 disabled:cursor-not-allowed',
+            canSend
+              ? 'bg-neon-red text-white hover:bg-neon-red/90 active:scale-95'
+              : 'bg-dark-100 text-stone-500'
           )}
         >
-          <Send size={20} className={sending ? 'animate-pulse' : ''} />
+          <Send size={18} />
         </button>
       </div>
 
-      {/* 24 小時提示 */}
-      <p className="text-xs text-gray-500 mt-2">
-        💬 訊息將在 24 小時後自動銷毀
+      <p className="text-[11px] text-stone-500 mt-2">
+        訊息將在 24 小時後自動銷毀 · Enter 發送 · Shift+Enter 換行
       </p>
     </div>
   )

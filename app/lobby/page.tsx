@@ -31,7 +31,6 @@ function LobbyContent() {
     autoRefresh: true,
   })
 
-  // 統計各標籤的訊號數量
   const tagStats = signals.reduce((acc, signal) => {
     acc[signal.tag] = (acc[signal.tag] || 0) + 1
     return acc
@@ -41,7 +40,6 @@ function LobbyContent() {
     if (!formData.movie || !formData.tag) return
 
     setIsSubmitting(true)
-
     console.log('🚀 開始發布訊號:', formData)
 
     const { data, error } = await createSignal({
@@ -67,71 +65,70 @@ function LobbyContent() {
   }
 
   const handleContactUser = (signal: SignalWithProfile) => {
-    // 導向聊天頁面
     router.push(`/chat/${signal.user_id}`)
   }
 
   const handleDeleteSignal = async (signalId: string) => {
     if (!confirm('確定要刪除這個訊號嗎？')) return
-
     await deleteSignal(signalId)
   }
 
   return (
     <div className="min-h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* 標題 */}
-        <div className="mb-8 space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <div className="w-12 h-12 rounded-full bg-neon-purple/20 flex items-center justify-center animate-pulse-slow">
-                <Radio size={28} className="text-neon-purple" />
+
+        {/* 頁面標題 */}
+        <div className="mb-8">
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex items-start gap-4">
+              <div className="w-11 h-11 rounded-md border border-neon-purple/40 bg-neon-purple/8 flex items-center justify-center flex-shrink-0 mt-0.5">
+                <Radio size={20} className="text-neon-purple" />
               </div>
               <div>
-                <h1 className="text-4xl font-bold text-neon-glow">訊號大廳</h1>
-                <p className="text-gray-400 mt-1">尋找志同道合的影伴</p>
-                {/* 調試用：顯示用戶狀態 */}
+                <h1 className="text-3xl font-serif font-bold text-foreground tracking-tight">
+                  訊號大廳
+                </h1>
+                <p className="text-stone-400 text-sm mt-1">尋找志同道合的影伴</p>
                 {user && (
-                  <p className="text-xs text-gray-600 mt-1">
-                    用戶 ID: {user.id.substring(0, 8)}...
+                  <p className="text-[11px] text-stone-600 mt-0.5">
+                    {user.id.substring(0, 8)}...
                   </p>
                 )}
               </div>
             </div>
 
-            {/* 刷新按鈕 */}
+            {/* 刷新 */}
             <button
               onClick={fetchSignals}
-              className="p-3 rounded-lg hover:bg-dark-100 transition-colors"
+              className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg hover:bg-dark-100 transition-colors flex-shrink-0"
               title="刷新訊號"
             >
-              <RefreshCw size={20} className="text-gray-400 hover:text-white" />
+              <RefreshCw size={18} className="text-stone-500 hover:text-foreground" />
             </button>
           </div>
 
-          {/* Stats */}
-          <div className="flex items-center gap-4 text-sm">
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-neon-purple animate-pulse"></div>
-              <span className="text-gray-400">
-                共 <span className="text-white font-bold">{signals.length}</span> 個訊號
+          {/* 統計行 */}
+          <div className="flex items-center gap-4 text-sm mt-5 pl-1">
+            <div className="flex items-center gap-2 text-stone-400">
+              <span className="w-1.5 h-1.5 rounded-full bg-neon-purple inline-block" />
+              <span>
+                共 <span className="text-foreground font-semibold">{signals.length}</span> 個訊號
               </span>
             </div>
 
-            {/* 電影篩選提示 */}
             {movieId && (
-              <div className="flex items-center gap-2">
-                <div className="w-1 h-4 bg-dark-100"></div>
-                <span className="text-yellow-500 text-sm">
-                  ⚠️ 正在篩選特定電影的訊號
-                </span>
-                <button
-                  onClick={() => router.push('/lobby')}
-                  className="text-neon-red text-sm underline hover:text-neon-pink"
-                >
-                  查看所有訊號
-                </button>
-              </div>
+              <>
+                <span className="text-dark-50">·</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-neon-pink text-xs">篩選中</span>
+                  <button
+                    onClick={() => router.push('/lobby')}
+                    className="text-xs text-stone-400 underline underline-offset-2 hover:text-foreground transition-colors"
+                  >
+                    查看全部
+                  </button>
+                </div>
+              </>
             )}
           </div>
         </div>
@@ -139,18 +136,19 @@ function LobbyContent() {
         {/* 篩選標籤 */}
         <div className="mb-6">
           <div className="flex items-center gap-2 mb-3">
-            <Filter size={16} className="text-gray-500" />
-            <span className="text-sm font-medium text-gray-400">篩選標籤</span>
+            <Filter size={13} className="text-stone-500" />
+            <span className="text-xs font-medium text-stone-500 uppercase tracking-wider">篩選</span>
           </div>
 
           <div className="flex flex-wrap gap-2">
+            {/* 全部 */}
             <button
               onClick={() => setSelectedTag(null)}
               className={cn(
-                'px-4 py-2 rounded-full border-2 transition-all duration-300',
+                'px-3 py-2 rounded-md border text-sm font-medium transition-all duration-200 min-h-[44px]',
                 selectedTag === null
-                  ? 'bg-neon-red border-neon-red text-white shadow-neon-red'
-                  : 'bg-dark-200 border-dark-100 text-gray-400 hover:border-neon-red/50'
+                  ? 'bg-neon-red/15 border-neon-red/50 text-neon-red'
+                  : 'bg-transparent border-dark-50/60 text-stone-400 hover:border-stone-500 hover:text-stone-300'
               )}
             >
               全部 ({signals.length})
@@ -161,15 +159,15 @@ function LobbyContent() {
                 key={tag.value}
                 onClick={() => setSelectedTag(tag.value)}
                 className={cn(
-                  'px-4 py-2 rounded-full border-2 transition-all duration-300 flex items-center gap-2',
+                  'px-3 py-2 rounded-md border text-sm font-medium transition-all duration-200 flex items-center gap-1.5 min-h-[44px]',
                   selectedTag === tag.value
-                    ? 'bg-neon-red border-neon-red text-white shadow-neon-red'
-                    : 'bg-dark-200 border-dark-100 text-gray-400 hover:border-neon-red/50'
+                    ? 'bg-neon-red/15 border-neon-red/50 text-neon-red'
+                    : 'bg-transparent border-dark-50/60 text-stone-400 hover:border-stone-500 hover:text-stone-300'
                 )}
               >
                 <span>{tag.emoji}</span>
                 <span>{tag.label}</span>
-                <Badge variant="default" size="sm">
+                <Badge variant="default" size="sm" className="ml-0.5">
                   {tagStats[tag.value] || 0}
                 </Badge>
               </button>
@@ -186,13 +184,13 @@ function LobbyContent() {
           loading={loading}
         />
 
-        {/* 發布訊號浮動按鈕 */}
+        {/* 發布訊號 FAB */}
         <button
           onClick={() => setIsFormModalOpen(true)}
-          className="fixed bottom-24 md:bottom-8 right-8 w-16 h-16 bg-neon-red rounded-full shadow-neon-red hover:scale-110 transition-transform flex items-center justify-center z-30"
+          className="fixed bottom-24 md:bottom-8 right-6 w-14 h-14 bg-neon-red rounded-full shadow-neon-red hover:bg-neon-red/90 transition-all duration-200 flex items-center justify-center z-30 active:scale-95"
           title="發布訊號"
         >
-          <Plus size={32} className="text-white" />
+          <Plus size={26} className="text-white" />
         </button>
 
         {/* 發布訊號 Modal */}
@@ -216,7 +214,7 @@ export default function LobbyPage() {
   return (
     <Suspense fallback={
       <div className="min-h-screen flex items-center justify-center">
-        <div className="text-gray-400">載入中...</div>
+        <div className="text-stone-500 text-sm">載入中...</div>
       </div>
     }>
       <LobbyContent />

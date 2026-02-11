@@ -87,16 +87,16 @@ export default function ChatRoom({ currentUserId, otherUser }: ChatRoomProps) {
   }, [sendMessage, otherUser.id])
 
   return (
-    <div className="flex flex-col h-[calc(100vh-4rem)] md:h-[calc(100vh-4rem)]">
+    <div className="flex flex-col h-[calc(100dvh-4rem-4rem)] md:h-[calc(100dvh-4rem)]">
       {/* Header */}
-      <div className="border-b border-dark-100 bg-dark-200 px-4 py-3">
+      <div className="border-b border-dark-100 bg-dark-200 px-4 py-3 flex-shrink-0">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             {/* 返回按鈕 */}
             <button
               type="button"
               onClick={() => router.push('/chat')}
-              className="p-2 hover:bg-dark-100 rounded-lg transition-colors md:hidden"
+              className="min-w-[44px] min-h-[44px] flex items-center justify-center hover:bg-dark-100 rounded-lg transition-colors md:hidden"
             >
               <ArrowLeft size={20} className="text-gray-400" />
             </button>

@@ -8,37 +8,21 @@ import { useAuthContext } from '@/components/providers/AuthProvider'
 import { useRealtimeContext } from '@/components/providers/RealtimeProvider'
 
 const navItems = [
-  {
-    href: '/',
-    label: '雷達',
-    icon: Radar,
-  },
-  {
-    href: '/lobby',
-    label: '大廳',
-    icon: Film,
-  },
-  {
-    href: '/chat',
-    label: '聊天',
-    icon: MessageSquare,
-  },
-  {
-    href: '/profile',
-    label: '我的',
-    icon: User,
-  },
+  { href: '/',        label: '雷達', icon: Radar },
+  { href: '/lobby',   label: '大廳', icon: Film },
+  { href: '/chat',    label: '聊天', icon: MessageSquare },
+  { href: '/profile', label: '我的', icon: User },
 ]
 
 export default function BottomNav() {
   const pathname = usePathname()
   const { user } = useAuthContext()
-  // 直接從全域 RealtimeProvider 取得未讀數，不再自行建立 Realtime 訂閱
   const { unreadCount } = useRealtimeContext()
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-40 md:hidden glass border-t border-dark-100">
-      <div className="flex items-center justify-around h-16 px-2">
+    <nav className="fixed bottom-0 left-0 right-0 z-40 md:hidden border-t border-dark-50/50"
+         style={{ background: 'rgba(26, 24, 22, 0.97)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)' }}>
+      <div className="flex items-stretch h-16 px-1">
         {navItems.map((item) => {
           const Icon = item.icon
           const isActive = pathname === item.href
@@ -50,31 +34,27 @@ export default function BottomNav() {
               key={item.href}
               href={item.href}
               className={cn(
-                'flex flex-col items-center justify-center flex-1 h-full transition-all duration-300 relative',
-                isActive ? 'text-neon-red' : 'text-gray-400'
+                'relative flex flex-col items-center justify-center flex-1 gap-1 transition-colors duration-200',
+                isActive ? 'text-foreground' : 'text-stone-500'
               )}
             >
-              <div className="relative">
-                <Icon
-                  size={24}
-                  className={cn(
-                    'transition-transform',
-                    isActive && 'scale-110'
-                  )}
-                />
+              {/* Active 頂部指示線 */}
+              {isActive && (
+                <span className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-[2px] bg-neon-red rounded-b-full" />
+              )}
 
-                {/* 未讀訊息徽章 */}
+              <div className="relative">
+                <Icon size={22} strokeWidth={isActive ? 2 : 1.5} />
+
+                {/* 未讀徽章 */}
                 {showBadge && (
-                  <span className="absolute -top-2 -right-2 bg-neon-red text-white text-xs font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1 shadow-neon-red animate-pulse">
+                  <span className="absolute -top-2 -right-2.5 bg-neon-red text-white text-[10px] font-bold rounded-full min-w-[16px] h-4 flex items-center justify-center px-1 leading-none">
                     {unreadCount > 99 ? '99+' : unreadCount}
                   </span>
                 )}
               </div>
 
-              <span className="text-xs mt-1 font-medium">{item.label}</span>
-              {isActive && (
-                <div className="absolute bottom-0 w-12 h-1 bg-neon-red rounded-t-full animate-fade-in" />
-              )}
+              <span className="text-[10px] font-medium tracking-wide">{item.label}</span>
             </Link>
           )
         })}

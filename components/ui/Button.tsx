@@ -9,19 +9,19 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 
 const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant = 'primary', size = 'md', isLoading, children, disabled, ...props }, ref) => {
-    const baseStyles = 'inline-flex items-center justify-center font-semibold rounded-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed'
+    const baseStyles = 'inline-flex items-center justify-center font-semibold rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed min-h-[44px]'
 
     const variants = {
-      primary: 'btn-neon text-white',
-      secondary: 'bg-dark-100 text-white border border-dark-50 hover:bg-dark-50 hover:shadow-lg',
-      ghost: 'bg-transparent text-gray-300 hover:bg-dark-100 hover:text-white',
-      danger: 'bg-red-600 text-white border border-red-500 hover:bg-red-700 hover:shadow-neon-red',
+      primary: 'btn-vintage text-white',
+      secondary: 'bg-dark-100 text-foreground border border-dark-50 hover:bg-dark-50',
+      ghost: 'bg-transparent text-stone-400 hover:bg-dark-100 hover:text-foreground',
+      danger: 'bg-transparent text-neon-red border border-neon-red/50 hover:bg-neon-red/10',
     }
 
     const sizes = {
-      sm: 'px-4 py-2 text-sm',
+      sm: 'px-4 py-2.5 text-sm',
       md: 'px-6 py-3 text-base',
-      lg: 'px-8 py-4 text-lg',
+      lg: 'px-8 py-3.5 text-lg',
     }
 
     return (

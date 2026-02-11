@@ -1,9 +1,23 @@
 import type { Metadata, Viewport } from 'next'
+import { Playfair_Display, Inter } from 'next/font/google'
 import './globals.css'
 import { AuthProvider } from '@/components/providers/AuthProvider'
 import { RealtimeProvider } from '@/components/providers/RealtimeProvider'
 import Navbar from '@/components/layout/Navbar'
 import BottomNav from '@/components/layout/BottomNav'
+
+const playfair = Playfair_Display({
+  subsets: ['latin'],
+  variable: '--font-playfair',
+  display: 'swap',
+  weight: ['400', '600', '700', '900'],
+})
+
+const inter = Inter({
+  subsets: ['latin'],
+  variable: '--font-inter',
+  display: 'swap',
+})
 
 export const metadata: Metadata = {
   title: 'CineMatch 影伴 - 24小時快閃電影社交',
@@ -15,7 +29,7 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
-  themeColor: '#e50914',
+  themeColor: '#1a1816',
 }
 
 export default function RootLayout({
@@ -24,10 +38,9 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="zh-TW">
-      <body className="min-h-screen gradient-neon antialiased">
+    <html lang="zh-TW" className={`${playfair.variable} ${inter.variable}`}>
+      <body className="min-h-screen bg-background text-foreground font-sans antialiased">
         <AuthProvider>
-          {/* RealtimeProvider 必須在 AuthProvider 內層，才能存取 useAuthContext */}
           <RealtimeProvider>
             <Navbar />
             <main className="pb-20 md:pb-0">

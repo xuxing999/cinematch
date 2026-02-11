@@ -48,38 +48,42 @@ const Modal = forwardRef<HTMLDivElement, ModalProps>(
     if (!isOpen) return null
 
     return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-fade-in">
+      <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 animate-fade-in">
         {/* 背景遮罩 */}
         <div
-          className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+          className="absolute inset-0 bg-black/70 backdrop-blur-sm"
           onClick={onClose}
         />
 
-        {/* Modal 內容 */}
+        {/* Modal 容器：手機底部滑出，桌面居中 */}
         <div
           ref={ref}
           className={cn(
-            'relative w-full glass rounded-2xl shadow-2xl animate-slide-up',
+            'relative w-full flex flex-col glass animate-slide-up',
+            // 手機：底部 sheet，最高 90dvh
+            'rounded-t-2xl sm:rounded-2xl',
+            'max-h-[90dvh] sm:max-h-[90vh]',
             sizes[size],
             className
           )}
           {...props}
         >
-          {/* Header */}
+          {/* Header — 固定不捲動 */}
           {title && (
-            <div className="flex items-center justify-between p-6 border-b border-dark-100">
-              <h2 className="text-2xl font-bold text-white">{title}</h2>
+            <div className="flex items-center justify-between px-6 py-4 border-b border-dark-100 flex-shrink-0">
+              <h2 className="text-xl font-serif font-bold text-foreground">{title}</h2>
               <button
                 onClick={onClose}
-                className="p-2 rounded-lg hover:bg-dark-100 transition-colors"
+                className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg hover:bg-dark-100 transition-colors"
+                aria-label="關閉"
               >
-                <X size={24} className="text-gray-400 hover:text-white" />
+                <X size={20} className="text-stone-400 hover:text-foreground" />
               </button>
             </div>
           )}
 
-          {/* Body */}
-          <div className="p-6">
+          {/* Body — 可獨立捲動，預留虛擬鍵盤空間 */}
+          <div className="overflow-y-auto overscroll-contain p-6 pb-safe">
             {children}
           </div>
         </div>
