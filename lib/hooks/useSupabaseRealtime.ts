@@ -94,16 +94,44 @@ export function useSupabaseRealtime({
   // ─── iOS / Safari 自動重連 ────────────────────────────────
   // 問題：iOS Safari 在分頁切換或螢幕鎖定時，WebSocket 靜默死亡，
   //       但狀態仍顯示 SUBSCRIBED（殭屍 channel）。
-  // 解法：監聽 visibilitychange（回到前景）和 online（網路恢復），
-  //       強制重新訂閱，確保 iOS 回來後立即恢復 Realtime。
+  //
+  // 修復電腦端回歸問題：
+  //   電腦瀏覽器切換分頁也會觸發 visibilitychange(visible)，
+  //   若無條件重連，會破壞桌面端正常的 WebSocket 連線。
+  //   解法：記錄頁面隱藏的時間戳，只有「隱藏超過 BACKGROUND_THRESHOLD_MS」
+  //   才視為 iOS 後台殺 WebSocket，才觸發重連。
+  //   電腦快速切換分頁通常 < 2 秒，iOS 後台通常 ≥ 5 秒。
+  const hiddenAtRef = useRef<number | null>(null)
+  const BACKGROUND_THRESHOLD_MS = 5_000 // 5 秒以上才重連
+
   useEffect(() => {
     if (!enabled) return
 
     const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible') {
-        console.log(`[Realtime:${channelName}] 頁面回到前景，觸發重連`)
-        retryCountRef.current = 0
-        setSubscribeKey((k) => k + 1)
+      if (document.visibilityState === 'hidden') {
+        // 記錄頁面進入背景的時間
+        hiddenAtRef.current = Date.now()
+      } else if (document.visibilityState === 'visible') {
+        const hiddenMs =
+          hiddenAtRef.current != null
+            ? Date.now() - hiddenAtRef.current
+            : Infinity // 若沒有記錄，保守地視為長時間背景
+
+        hiddenAtRef.current = null
+
+        if (hiddenMs >= BACKGROUND_THRESHOLD_MS) {
+          // 長時間背景（iOS 後台 / 鎖屏）→ WebSocket 可能已死，重連
+          console.log(
+            `[Realtime:${channelName}] 頁面回到前景（背景 ${hiddenMs}ms），觸發重連`
+          )
+          retryCountRef.current = 0
+          setSubscribeKey((k) => k + 1)
+        } else {
+          // 短暫切換分頁（桌面端）→ 連線仍正常，不重連
+          console.log(
+            `[Realtime:${channelName}] 頁面回到前景（背景 ${hiddenMs}ms < ${BACKGROUND_THRESHOLD_MS}ms），跳過重連`
+          )
+        }
       }
     }
 
@@ -141,14 +169,19 @@ export function useSupabaseRealtime({
     }
 
     setStatus('CONNECTING')
-    console.log(`[Realtime:${channelName}] 建立連線 (table: ${table}, event: ${event})`)
+
+    // 每次重連使用帶有 subscribeKey 後綴的唯一 channel 名稱，
+    // 避免 Supabase JS client 回傳舊的同名 channel 物件（channel name conflict）。
+    // 即使 removeChannel 尚未完成，新的訂閱也能獨立建立。
+    const actualChannelName = `${channelName}-k${subscribeKey}`
+    console.log(`[Realtime:${actualChannelName}] 建立連線 (table: ${table}, event: ${event})`)
 
     // 組裝 postgres_changes 設定
     const changeConfig: Record<string, string> = { event, schema, table }
     if (filter) changeConfig.filter = filter
 
     const channel = supabase
-      .channel(channelName)
+      .channel(actualChannelName)
       .on('postgres_changes', changeConfig as any, (payload) => {
         // 確保 effect 未被清理
         if (!isDestroyed) {
@@ -158,7 +191,7 @@ export function useSupabaseRealtime({
       .subscribe((subStatus, err) => {
         if (isDestroyed) return
 
-        console.log(`[Realtime:${channelName}] 狀態: ${subStatus}`, err ?? '')
+        console.log(`[Realtime:${actualChannelName}] 狀態: ${subStatus}`, err ?? '')
 
         if (subStatus === 'SUBSCRIBED') {
           setStatus('SUBSCRIBED')
@@ -172,7 +205,7 @@ export function useSupabaseRealtime({
             const delay = BASE_RETRY_DELAY_MS * Math.pow(2, retryCountRef.current)
             retryCountRef.current++
             console.warn(
-              `[Realtime:${channelName}] 自動重連 ${retryCountRef.current}/${MAX_RETRIES}，${delay}ms 後...`
+              `[Realtime:${actualChannelName}] 自動重連 ${retryCountRef.current}/${MAX_RETRIES}，${delay}ms 後...`
             )
             retryTimerRef.current = setTimeout(() => {
               if (!isDestroyed) {
@@ -183,7 +216,7 @@ export function useSupabaseRealtime({
           } else {
             // 超過最大重連次數 → CLOSED，由上層切換 Polling
             console.error(
-              `[Realtime:${channelName}] 達最大重連次數 (${MAX_RETRIES})，停止重試`
+              `[Realtime:${actualChannelName}] 達最大重連次數 (${MAX_RETRIES})，停止重試`
             )
             setStatus('CLOSED')
           }
@@ -203,7 +236,7 @@ export function useSupabaseRealtime({
         clearTimeout(retryTimerRef.current)
         retryTimerRef.current = null
       }
-      console.log(`[Realtime:${channelName}] 清理 channel`)
+      console.log(`[Realtime:${actualChannelName}] 清理 channel`)
       supabase.removeChannel(channel)
     }
     // subscribeKey 變化時重跑（手動重連 or 自動重連觸發）
