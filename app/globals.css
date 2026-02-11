@@ -1,0 +1,180 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    @apply border-dark-100;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  }
+
+  /* 隱藏滾動條但保留功能 */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-dark-300;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-dark-100 rounded-full;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-dark-50;
+  }
+}
+
+@layer components {
+  /* 霓虹光效按鈕 */
+  .btn-neon {
+    @apply relative px-6 py-3 font-semibold text-white bg-transparent border-2 border-neon-red rounded-lg overflow-hidden transition-all duration-300;
+  }
+
+  .btn-neon:hover {
+    @apply shadow-neon-red scale-105;
+  }
+
+  .btn-neon::before {
+    content: '';
+    @apply absolute inset-0 bg-gradient-to-r from-neon-red to-neon-pink opacity-0 transition-opacity duration-300;
+  }
+
+  .btn-neon:hover::before {
+    @apply opacity-20;
+  }
+
+  /* 霓虹卡片 */
+  .card-neon {
+    @apply bg-dark-200 border border-dark-100 rounded-xl p-6 transition-all duration-300;
+  }
+
+  .card-neon:hover {
+    @apply border-neon-red shadow-neon-red;
+  }
+
+  /* 霓虹文字 */
+  .text-neon-glow {
+    @apply text-neon-red;
+    text-shadow: 0 0 10px rgba(229, 9, 20, 0.8), 0 0 20px rgba(229, 9, 20, 0.5);
+  }
+
+  /* 漸變背景 */
+  .gradient-neon {
+    background: linear-gradient(135deg, #221f1f 0%, #2e2b2b 50%, #221f1f 100%);
+  }
+
+  /* 動畫 */
+  .animate-fade-in {
+    animation: fadeIn 0.3s ease-in;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .animate-slide-up {
+    animation: slideUp 0.4s ease-out;
+  }
+
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* 脈衝動畫（用於訊號計數器） */
+  .pulse-ring {
+    @apply absolute inset-0 rounded-full border-2 border-neon-red opacity-75;
+    animation: pulseRing 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
+  @keyframes pulseRing {
+    0%, 100% {
+      transform: scale(1);
+      opacity: 0.75;
+    }
+    50% {
+      transform: scale(1.2);
+      opacity: 0;
+    }
+  }
+}
+
+@layer utilities {
+  /* 文字省略 */
+  .line-clamp-1 {
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .line-clamp-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  /* 玻璃擬態效果 */
+  .glass {
+    @apply bg-dark-200/80 backdrop-blur-lg border border-dark-100/50;
+  }
+
+  /* 霓虹邊框 */
+  .border-neon-animated {
+    position: relative;
+  }
+
+  .border-neon-animated::before {
+    content: '';
+    @apply absolute inset-0 rounded-lg;
+    background: linear-gradient(90deg, #e50914, #ff006e, #8338ec, #3a86ff);
+    background-size: 300% 300%;
+    animation: gradientShift 3s ease infinite;
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+
+  .border-neon-animated:hover::before {
+    opacity: 0.5;
+  }
+
+  @keyframes gradientShift {
+    0% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+    100% {
+      background-position: 0% 50%;
+    }
+  }
+}
