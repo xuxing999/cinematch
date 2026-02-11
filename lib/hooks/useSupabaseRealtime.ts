@@ -91,6 +91,37 @@ export function useSupabaseRealtime({
     setSubscribeKey((k) => k + 1)
   }, [channelName])
 
+  // ─── iOS / Safari 自動重連 ────────────────────────────────
+  // 問題：iOS Safari 在分頁切換或螢幕鎖定時，WebSocket 靜默死亡，
+  //       但狀態仍顯示 SUBSCRIBED（殭屍 channel）。
+  // 解法：監聽 visibilitychange（回到前景）和 online（網路恢復），
+  //       強制重新訂閱，確保 iOS 回來後立即恢復 Realtime。
+  useEffect(() => {
+    if (!enabled) return
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        console.log(`[Realtime:${channelName}] 頁面回到前景，觸發重連`)
+        retryCountRef.current = 0
+        setSubscribeKey((k) => k + 1)
+      }
+    }
+
+    const handleOnline = () => {
+      console.log(`[Realtime:${channelName}] 網路恢復，觸發重連`)
+      retryCountRef.current = 0
+      setSubscribeKey((k) => k + 1)
+    }
+
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    window.addEventListener('online', handleOnline)
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+      window.removeEventListener('online', handleOnline)
+    }
+  }, [channelName, enabled])
+
   // ─── 核心訂閱 Effect ──────────────────────────────────────
   useEffect(() => {
     // 未啟用：保持 IDLE

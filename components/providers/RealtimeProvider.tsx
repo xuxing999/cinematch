@@ -112,49 +112,49 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
     }
   }, [userId, refetchUnreadCount])
 
-  // ─── Realtime 事件處理（客戶端過濾） ──────────────────
+  // ─── Realtime 事件處理 ──────────────────────────────────
+  // 注意：訂閱已加 server-side filter (receiver_id=eq.userId)，
+  //       且 event='INSERT'，所以收到的 payload 必定是「發給我的新訊息」。
+  //       這裡僅需處理 INSERT，不必再做 receiver_id 客戶端二次過濾。
   const handleRealtimeEvent = useCallback(
     (payload: any) => {
       if (!userId) return
+      if (payload.eventType !== 'INSERT') return
 
-      const eventType: string = payload.eventType
-      console.log(`[RealtimeProvider] Realtime 事件: ${eventType}`, payload.new ?? payload.old)
+      const msg = payload.new
+      if (!msg?.id) return
 
-      if (eventType === 'INSERT') {
-        // 新訊息：若接收者是我
-        if (payload.new?.receiver_id === userId) {
-          // 1. 未讀數 +1
-          setUnreadCount((prev) => {
-            console.log(`[RealtimeProvider] 新訊息 → 未讀數 ${prev} → ${prev + 1}`)
-            return prev + 1
-          })
-          // 2. 更新 latestIncomingMessage，讓聊天室直接從 Context 拿到新訊息
-          setLatestIncomingMessage(payload.new as IncomingMessage)
-          console.log(`[RealtimeProvider] latestIncomingMessage 更新 id=${payload.new.id}`)
-        }
-      } else if (eventType === 'UPDATE') {
-        // 訊息被更新（例如標記已讀）：重新抓取準確數字
-        if (payload.new?.receiver_id === userId) {
-          console.log('[RealtimeProvider] 訊息已讀更新 → refetch')
-          refetchUnreadCount()
-        }
-      }
+      console.log(`[RealtimeProvider] 收到新訊息 id=${msg.id}，sender=${msg.sender_id}`)
+
+      // 1. 未讀數 +1
+      setUnreadCount((prev) => prev + 1)
+
+      // 2. 通知聊天室組件（ChatRoom 監聽此值即時顯示訊息）
+      setLatestIncomingMessage(msg as IncomingMessage)
     },
-    [userId, refetchUnreadCount]
+    [userId]
   )
 
   // ─── 建立全域 Realtime 訂閱（整個 app 只有一個） ───────
+  // 重要：傳入 server-side filter `receiver_id=eq.${userId}`
+  // 原因：若沒有 filter，Supabase 依賴 RLS (auth.uid()) 過濾，
+  //       但 iOS Safari 的 WebSocket 無法正確攜帶 JWT，導致
+  //       auth.uid() = null → RLS 遮住整個 payload.new → iOS 收不到通知。
+  // 加上 filter 後，Supabase 直接在資料庫層過濾，不依賴 JWT in WebSocket。
   const { status: realtimeStatus, reconnect } = useSupabaseRealtime({
     channelName: userId ? `global-messages-${userId}` : 'global-messages-idle',
     table: 'messages',
-    event: '*',
+    event: 'INSERT',
     schema: 'public',
+    filter: userId ? `receiver_id=eq.${userId}` : undefined,
     onEvent: handleRealtimeEvent,
     enabled: !!userId,
   })
 
-  // ─── Polling 備援：Realtime 完全失敗時自動啟動 ─────────
-  const shouldPoll = realtimeStatus === 'CLOSED' && !!userId
+  // ─── Polling 備援：Realtime 失敗時自動啟動 ────────────────
+  // CLOSED：已達最大重連次數，改用 Polling
+  // ERROR：重連等待期間（最長 93 秒）也用 Polling 填補，避免通知空窗
+  const shouldPoll = (realtimeStatus === 'CLOSED' || realtimeStatus === 'ERROR') && !!userId
 
   useEffect(() => {
     if (!shouldPoll) return
