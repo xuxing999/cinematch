@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, KeyboardEvent } from 'react'
+import { useState, useRef, KeyboardEvent } from 'react'
 import { Send } from 'lucide-react'
 import { cn } from '@/lib/utils/cn'
 
@@ -12,6 +12,7 @@ interface MessageInputProps {
 export default function MessageInput({ onSend, disabled }: MessageInputProps) {
   const [content, setContent] = useState('')
   const [sending, setSending] = useState(false)
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
 
   const handleSend = async () => {
     const trimmed = content.trim()
@@ -27,10 +28,13 @@ export default function MessageInput({ onSend, disabled }: MessageInputProps) {
       setContent(trimmed)
     } finally {
       setSending(false)
+      // 送出後立即將焦點還給輸入框，讓使用者可以直接繼續打字
+      textareaRef.current?.focus()
     }
   }
 
-  const handleKeyPress = (e: KeyboardEvent<HTMLTextAreaElement>) => {
+  // 使用 onKeyDown（非 deprecated 的 onKeyPress），確保跨瀏覽器正常觸發
+  const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
       handleSend()
@@ -44,9 +48,10 @@ export default function MessageInput({ onSend, disabled }: MessageInputProps) {
       <div className="flex items-end gap-3">
         {/* 輸入框 */}
         <textarea
+          ref={textareaRef}
           value={content}
           onChange={(e) => setContent(e.target.value)}
-          onKeyPress={handleKeyPress}
+          onKeyDown={handleKeyDown}
           placeholder="輸入訊息..."
           disabled={disabled || sending}
           rows={1}
