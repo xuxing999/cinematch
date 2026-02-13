@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { Conversation } from '@/types/models'
 import ConversationItem from './ConversationItem'
-import { useSupabaseRealtime } from '@/lib/hooks/useSupabaseRealtime'
+import { useRealtimeContext } from '@/components/providers/RealtimeProvider'
 
 interface ConversationListProps {
   currentUserId: string
@@ -54,36 +54,23 @@ export default function ConversationList({ currentUserId }: ConversationListProp
     fetchConversations()
   }, [fetchConversations])
 
-  // ─── Realtime 事件處理 ────────────────────────────────
-  const handleRealtimeEvent = useCallback(
-    (payload: any) => {
-      const eventType = payload.eventType
-      const record = payload.new ?? payload.old
-      if (!record) return
+  // ─── 使用全域 RealtimeProvider（避免重複訂閱 + 修復 iOS JWT 問題） ────
+  // 原本這裡有一個自建的 useSupabaseRealtime 訂閱，但它沒有 server-side filter，
+  // 導致 iOS Safari（WebSocket 無 JWT）auth.uid()=null → RLS 遮蔽 payload.new
+  // → 靜默收不到任何訊息事件。
+  //
+  // 修復方案：直接監聽 RealtimeProvider 的 latestIncomingMessage，
+  // 它已有正確的 server-side filter（receiver_id=eq.userId），iOS 可正常收到。
+  // 當有新訊息發給我時，重新拉取對話列表即可保持最新狀態。
+  const { latestIncomingMessage, connectionStatus } = useRealtimeContext()
+  const realtimeStatus = connectionStatus
 
-      // 客戶端過濾：只處理與我相關的訊息
-      if (
-        record.receiver_id !== currentUserId &&
-        record.sender_id !== currentUserId
-      ) {
-        return
-      }
-
-      console.log(`[ConversationList] 收到 ${eventType} 事件，刷新對話列表`)
-      fetchConversations()
-    },
-    [currentUserId, fetchConversations]
-  )
-
-  // ─── 使用標準化 Realtime Hook ─────────────────────────
-  const { status: realtimeStatus } = useSupabaseRealtime({
-    channelName: `conversation-list-${currentUserId}`,
-    table: 'messages',
-    event: '*',
-    schema: 'public',
-    onEvent: handleRealtimeEvent,
-    enabled: !!currentUserId,
-  })
+  useEffect(() => {
+    if (!latestIncomingMessage) return
+    // 收到新訊息（必定是發給我的），刷新對話列表
+    console.log('[ConversationList] 偵測到新訊息，刷新對話列表')
+    fetchConversations()
+  }, [latestIncomingMessage]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleConversationClick = (userId: string) => {
     router.push(`/chat/${userId}`)

@@ -1,8 +1,9 @@
 // @ts-nocheck
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 import { SignalWithProfile, SignalTag } from '@/types/models'
+import { useSupabaseRealtime } from '@/lib/hooks/useSupabaseRealtime'
 
 interface UseSignalsOptions {
   movieId?: number
@@ -14,6 +15,46 @@ export function useSignals(options: UseSignalsOptions = {}) {
   const [signals, setSignals] = useState<SignalWithProfile[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<Error | null>(null)
+
+  // ─── 靜默刷新（不顯示 loading spinner，用於 Realtime 觸發） ──
+  // 使用 ref 記錄最新的 options，避免 stale closure
+  const optionsRef = useRef(options)
+  useEffect(() => {
+    optionsRef.current = options
+  })
+
+  const silentRefetch = useCallback(async () => {
+    try {
+      const { movieId, tag } = optionsRef.current
+      const params = new URLSearchParams()
+      if (movieId) params.append('movie_id', movieId.toString())
+      if (tag) params.append('tag', tag)
+      const response = await fetch(`/api/signals?${params.toString()}`)
+      if (!response.ok) return
+      const data = await response.json()
+      setSignals(data)
+      console.log('[useSignals] Realtime 觸發靜默刷新，訊號數:', data.length)
+    } catch (err) {
+      console.error('[useSignals] 靜默刷新失敗', err)
+    }
+  }, [])
+
+  // ─── Realtime 訂閱：signals 表有 INSERT/DELETE 就立即刷新 ────
+  // signals 的 RLS SELECT 是公開的（不依賴 auth.uid()），
+  // 所以 iOS Safari 的 JWT 問題不影響此訂閱。
+  useSupabaseRealtime({
+    channelName: 'signals-lobby-global',
+    table: 'signals',
+    event: '*',
+    schema: 'public',
+    onEvent: (payload) => {
+      if (payload.eventType === 'INSERT' || payload.eventType === 'DELETE') {
+        console.log(`[useSignals] 收到 ${payload.eventType} 事件，立即刷新大廳`)
+        silentRefetch()
+      }
+    },
+    enabled: true,
+  })
 
   const fetchSignals = async () => {
     try {
