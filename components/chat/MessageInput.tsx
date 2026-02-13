@@ -28,8 +28,13 @@ export default function MessageInput({ onSend, disabled }: MessageInputProps) {
       setContent(trimmed)
     } finally {
       setSending(false)
-      // 送出後立即將焦點還給輸入框，讓使用者可以直接繼續打字
-      textareaRef.current?.focus()
+      // 必須用 requestAnimationFrame 延到下一幀才 focus：
+      // setSending(false) 只是排程 React re-render，textarea 在同一幀
+      // 內仍是 disabled，直接呼叫 focus() 會被瀏覽器靜默忽略。
+      // rAF 確保等 React 重新渲染、textarea 恢復 enabled 後才聚焦。
+      requestAnimationFrame(() => {
+        textareaRef.current?.focus()
+      })
     }
   }
 
