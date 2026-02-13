@@ -14,6 +14,7 @@
  *   const { unreadCount, refetchUnreadCount, connectionStatus } = useRealtimeContext()
  */
 
+import { logger } from '@/lib/utils/logger'
 import {
   createContext,
   useContext,
@@ -96,10 +97,10 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
       )
       if (isMountedRef.current) {
         setUnreadCount(total)
-        console.log(`[RealtimeProvider] 未讀數更新: ${total}`)
+        logger.log(`[RealtimeProvider] 未讀數更新: ${total}`)
       }
     } catch (err) {
-      console.error('[RealtimeProvider] 獲取未讀數失敗', err)
+      logger.error('[RealtimeProvider] 獲取未讀數失敗', err)
     }
   }, [userId])
 
@@ -124,7 +125,7 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
       const msg = payload.new
       if (!msg?.id) return
 
-      console.log(`[RealtimeProvider] 收到新訊息 id=${msg.id}，sender=${msg.sender_id}`)
+      logger.log(`[RealtimeProvider] 收到新訊息 id=${msg.id}，sender=${msg.sender_id}`)
 
       // 1. 未讀數 +1
       setUnreadCount((prev) => prev + 1)
@@ -159,19 +160,19 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (!shouldPoll) return
 
-    console.log('[RealtimeProvider] Realtime 已停止，啟動 Polling 備援 (每 10 秒)')
+    logger.log('[RealtimeProvider] Realtime 已停止，啟動 Polling 備援 (每 10 秒)')
     setIsPolling(true)
 
     // 立即執行一次
     refetchUnreadCount()
 
     const timer = setInterval(() => {
-      console.log('[RealtimeProvider] Polling 執行中...')
+      logger.log('[RealtimeProvider] Polling 執行中...')
       refetchUnreadCount()
     }, POLL_INTERVAL_MS)
 
     return () => {
-      console.log('[RealtimeProvider] 停止 Polling 備援')
+      logger.log('[RealtimeProvider] 停止 Polling 備援')
       setIsPolling(false)
       clearInterval(timer)
     }

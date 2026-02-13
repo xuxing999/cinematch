@@ -1,6 +1,7 @@
 // @ts-nocheck
 'use client'
 
+import { logger } from '@/lib/utils/logger'
 import { useEffect, useState, useCallback } from 'react'
 import { MessageWithSender } from '@/types/models'
 
@@ -25,7 +26,7 @@ export function useMessages(options: UseMessagesOptions = {}) {
       }
 
       const url = `/api/messages?${params.toString()}`
-      console.log('📨 useMessages: 獲取訊息', { url, otherUserId: options.otherUserId })
+      logger.log('📨 useMessages: 獲取訊息', { url, otherUserId: options.otherUserId })
 
       const response = await fetch(url)
 
@@ -34,11 +35,11 @@ export function useMessages(options: UseMessagesOptions = {}) {
       }
 
       const data = await response.json()
-      console.log('📬 useMessages: 收到訊息', { count: data.length })
+      logger.log('📬 useMessages: 收到訊息', { count: data.length })
       setMessages(data)
     } catch (err) {
       setError(err instanceof Error ? err : new Error('Unknown error'))
-      console.error('❌ useMessages: 錯誤', err)
+      logger.error('❌ useMessages: 錯誤', err)
     } finally {
       setLoading(false)
     }
@@ -46,7 +47,7 @@ export function useMessages(options: UseMessagesOptions = {}) {
 
   const sendMessage = useCallback(async (receiverId: string, content: string) => {
     try {
-      console.log('📤 useMessages: 發送訊息', { receiverId, contentLength: content.length })
+      logger.log('📤 useMessages: 發送訊息', { receiverId, contentLength: content.length })
 
       const response = await fetch('/api/messages', {
         method: 'POST',
@@ -64,14 +65,14 @@ export function useMessages(options: UseMessagesOptions = {}) {
       }
 
       const newMessage = await response.json()
-      console.log('✅ useMessages: 訊息發送成功', newMessage.id)
+      logger.log('✅ useMessages: 訊息發送成功', newMessage.id)
 
       // 立即添加到本地狀態（不等待重新獲取）
       setMessages((prev) => [...prev, newMessage])
 
       return { data: newMessage, error: null }
     } catch (err) {
-      console.error('❌ useMessages: 發送失敗', err)
+      logger.error('❌ useMessages: 發送失敗', err)
       return { data: null, error: err instanceof Error ? err : new Error('Unknown error') }
     }
   }, [])
@@ -101,21 +102,21 @@ export function useMessages(options: UseMessagesOptions = {}) {
 
       return { error: null }
     } catch (err) {
-      console.error('Error marking messages as read:', err)
+      logger.error('Error marking messages as read:', err)
       return { error: err instanceof Error ? err : new Error('Unknown error') }
     }
   }, [])
 
   // 添加新訊息到列表（用於 Realtime）
   const addMessage = useCallback((message: MessageWithSender) => {
-    console.log('➕ useMessages: addMessage 被呼叫', message.id)
+    logger.log('➕ useMessages: addMessage 被呼叫', message.id)
     setMessages((prev) => {
       // 檢查訊息是否已存在（避免重複）
       if (prev.some((m) => m.id === message.id)) {
-        console.log('⚠️ useMessages: 訊息已存在，跳過', message.id)
+        logger.log('⚠️ useMessages: 訊息已存在，跳過', message.id)
         return prev
       }
-      console.log('✅ useMessages: 訊息已加入列表', message.id)
+      logger.log('✅ useMessages: 訊息已加入列表', message.id)
       return [...prev, message]
     })
   }, [])

@@ -1,5 +1,6 @@
 // @ts-nocheck
 export const dynamic = 'force-dynamic'
+import { logger } from '@/lib/utils/logger'
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 
@@ -27,7 +28,7 @@ export async function GET(
 
     return NextResponse.json(data)
   } catch (error) {
-    console.error('Error fetching signal:', error)
+    logger.error('Error fetching signal:', error)
     return NextResponse.json(
       { error: 'Failed to fetch signal' },
       { status: 500 }
@@ -72,7 +73,7 @@ export async function PATCH(
 
     return NextResponse.json(data)
   } catch (error) {
-    console.error('Error updating signal:', error)
+    logger.error('Error updating signal:', error)
     return NextResponse.json(
       { error: 'Failed to update signal' },
       { status: 500 }
@@ -110,7 +111,7 @@ export async function DELETE(
 
     return NextResponse.json({ success: true })
   } catch (error) {
-    console.error('Error deleting signal:', error)
+    logger.error('Error deleting signal:', error)
     return NextResponse.json(
       { error: 'Failed to delete signal' },
       { status: 500 }

@@ -1,5 +1,6 @@
 // @ts-nocheck
 export const dynamic = 'force-dynamic'
+import { logger } from '@/lib/utils/logger'
 import { NextResponse } from 'next/server'
 import { tmdbClient } from '@/lib/tmdb/client'
 
@@ -24,7 +25,7 @@ export async function GET(request: Request) {
 
     return NextResponse.json(data)
   } catch (error) {
-    console.error('Error searching movies:', error)
+    logger.error('Error searching movies:', error)
     return NextResponse.json(
       { error: 'Failed to search movies' },
       { status: 500 }

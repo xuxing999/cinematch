@@ -11,6 +11,7 @@
  * - 正確的 cleanup 邏輯（React StrictMode 安全）
  */
 
+import { logger } from '@/lib/utils/logger'
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import type { RealtimePostgresChangesPayload } from '@supabase/supabase-js'
@@ -86,7 +87,7 @@ export function useSupabaseRealtime({
    * 重置重連次數，並遞增 subscribeKey 觸發 effect 重跑
    */
   const reconnect = useCallback(() => {
-    console.log(`[Realtime:${channelName}] 手動重連`)
+    logger.log(`[Realtime:${channelName}] 手動重連`)
     retryCountRef.current = 0
     setSubscribeKey((k) => k + 1)
   }, [channelName])
@@ -121,14 +122,14 @@ export function useSupabaseRealtime({
 
         if (hiddenMs >= BACKGROUND_THRESHOLD_MS) {
           // 長時間背景（iOS 後台 / 鎖屏）→ WebSocket 可能已死，重連
-          console.log(
+          logger.log(
             `[Realtime:${channelName}] 頁面回到前景（背景 ${hiddenMs}ms），觸發重連`
           )
           retryCountRef.current = 0
           setSubscribeKey((k) => k + 1)
         } else {
           // 短暫切換分頁（桌面端）→ 連線仍正常，不重連
-          console.log(
+          logger.log(
             `[Realtime:${channelName}] 頁面回到前景（背景 ${hiddenMs}ms < ${BACKGROUND_THRESHOLD_MS}ms），跳過重連`
           )
         }
@@ -136,7 +137,7 @@ export function useSupabaseRealtime({
     }
 
     const handleOnline = () => {
-      console.log(`[Realtime:${channelName}] 網路恢復，觸發重連`)
+      logger.log(`[Realtime:${channelName}] 網路恢復，觸發重連`)
       retryCountRef.current = 0
       setSubscribeKey((k) => k + 1)
     }
@@ -174,7 +175,7 @@ export function useSupabaseRealtime({
     // 避免 Supabase JS client 回傳舊的同名 channel 物件（channel name conflict）。
     // 即使 removeChannel 尚未完成，新的訂閱也能獨立建立。
     const actualChannelName = `${channelName}-k${subscribeKey}`
-    console.log(`[Realtime:${actualChannelName}] 建立連線 (table: ${table}, event: ${event})`)
+    logger.log(`[Realtime:${actualChannelName}] 建立連線 (table: ${table}, event: ${event})`)
 
     // 組裝 postgres_changes 設定
     const changeConfig: Record<string, string> = { event, schema, table }
@@ -191,7 +192,7 @@ export function useSupabaseRealtime({
       .subscribe((subStatus, err) => {
         if (isDestroyed) return
 
-        console.log(`[Realtime:${actualChannelName}] 狀態: ${subStatus}`, err ?? '')
+        logger.log(`[Realtime:${actualChannelName}] 狀態: ${subStatus}`, err ?? '')
 
         if (subStatus === 'SUBSCRIBED') {
           setStatus('SUBSCRIBED')
@@ -204,7 +205,7 @@ export function useSupabaseRealtime({
             // 指數退避：3s, 6s, 12s, 24s, 48s
             const delay = BASE_RETRY_DELAY_MS * Math.pow(2, retryCountRef.current)
             retryCountRef.current++
-            console.warn(
+            logger.warn(
               `[Realtime:${actualChannelName}] 自動重連 ${retryCountRef.current}/${MAX_RETRIES}，${delay}ms 後...`
             )
             retryTimerRef.current = setTimeout(() => {
@@ -215,7 +216,7 @@ export function useSupabaseRealtime({
             }, delay)
           } else {
             // 超過最大重連次數 → CLOSED，由上層切換 Polling
-            console.error(
+            logger.error(
               `[Realtime:${actualChannelName}] 達最大重連次數 (${MAX_RETRIES})，停止重試`
             )
             setStatus('CLOSED')
@@ -236,7 +237,7 @@ export function useSupabaseRealtime({
         clearTimeout(retryTimerRef.current)
         retryTimerRef.current = null
       }
-      console.log(`[Realtime:${actualChannelName}] 清理 channel`)
+      logger.log(`[Realtime:${actualChannelName}] 清理 channel`)
       supabase.removeChannel(channel)
     }
     // subscribeKey 變化時重跑（手動重連 or 自動重連觸發）

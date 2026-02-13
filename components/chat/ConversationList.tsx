@@ -1,5 +1,6 @@
 'use client'
 
+import { logger } from '@/lib/utils/logger'
 import { useEffect, useState, useCallback, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { Conversation } from '@/types/models'
@@ -25,7 +26,7 @@ export default function ConversationList({ currentUserId }: ConversationListProp
   }, [])
 
   const fetchConversations = useCallback(async () => {
-    console.log('[ConversationList] 獲取對話列表')
+    logger.log('[ConversationList] 獲取對話列表')
     setLoading(true)
     setError(null)
 
@@ -33,12 +34,12 @@ export default function ConversationList({ currentUserId }: ConversationListProp
       const response = await fetch('/api/messages?type=conversations')
       if (!response.ok) throw new Error('獲取對話列表失敗')
       const data = await response.json()
-      console.log('[ConversationList] 取得對話', data.conversations.length, '筆')
+      logger.log('[ConversationList] 取得對話', data.conversations.length, '筆')
       if (isMountedRef.current) {
         setConversations(data.conversations)
       }
     } catch (err) {
-      console.error('[ConversationList] 錯誤', err)
+      logger.error('[ConversationList] 錯誤', err)
       if (isMountedRef.current) {
         setError(err instanceof Error ? err.message : '未知錯誤')
       }
@@ -68,7 +69,7 @@ export default function ConversationList({ currentUserId }: ConversationListProp
   useEffect(() => {
     if (!latestIncomingMessage) return
     // 收到新訊息（必定是發給我的），刷新對話列表
-    console.log('[ConversationList] 偵測到新訊息，刷新對話列表')
+    logger.log('[ConversationList] 偵測到新訊息，刷新對話列表')
     fetchConversations()
   }, [latestIncomingMessage]) // eslint-disable-line react-hooks/exhaustive-deps
 

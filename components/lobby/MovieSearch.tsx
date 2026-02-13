@@ -1,5 +1,6 @@
 'use client'
 
+import { logger } from '@/lib/utils/logger'
 import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import { TMDBMovie } from '@/lib/tmdb/types'
@@ -41,7 +42,7 @@ export default function MovieSearch({ onSelectMovie, selectedMovie }: MovieSearc
       setResults(data.results || [])
       setShowResults(true)
     } catch (error) {
-      console.error('Error searching movies:', error)
+      logger.error('Error searching movies:', error)
       setResults([])
     } finally {
       setLoading(false)

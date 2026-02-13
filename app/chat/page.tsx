@@ -1,9 +1,10 @@
+import { logger } from '@/lib/utils/logger'
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import ConversationList from '@/components/chat/ConversationList'
 
 export default async function ChatPage() {
-  console.log('📱 ChatPage: 渲染對話列表頁面')
+  logger.log('📱 ChatPage: 渲染對話列表頁面')
 
   const supabase = await createClient()
 
@@ -13,11 +14,11 @@ export default async function ChatPage() {
   } = await supabase.auth.getUser()
 
   if (!user) {
-    console.log('⚠️ ChatPage: 無用戶，重定向到首頁')
+    logger.log('⚠️ ChatPage: 無用戶，重定向到首頁')
     redirect('/')
   }
 
-  console.log('✅ ChatPage: 用戶已登入', user.id)
+  logger.log('✅ ChatPage: 用戶已登入', user.id)
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">

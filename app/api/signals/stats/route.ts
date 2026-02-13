@@ -1,5 +1,6 @@
 // @ts-nocheck
 export const dynamic = 'force-dynamic'
+import { logger } from '@/lib/utils/logger'
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 
@@ -30,7 +31,7 @@ export async function GET() {
 
     return NextResponse.json(stats)
   } catch (error) {
-    console.error('Error fetching signal stats:', error)
+    logger.error('Error fetching signal stats:', error)
     return NextResponse.json(
       { error: 'Failed to fetch signal stats' },
       { status: 500 }

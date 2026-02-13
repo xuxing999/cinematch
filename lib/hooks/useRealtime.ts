@@ -12,6 +12,7 @@
  * 僅在聊天室（ChatRoom）使用，負責接收當前對話的新訊息。
  */
 
+import { logger } from '@/lib/utils/logger'
 import { useCallback, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useSupabaseRealtime, type RealtimeStatus } from './useSupabaseRealtime'
@@ -54,7 +55,7 @@ export function useRealtimeMessages({
       if (msg?.receiver_id !== currentUserId) return
       if (msg?.sender_id !== otherUserId) return
 
-      console.log(`[useRealtimeMessages] 收到新訊息 id=${msg.id}，取完整資料`)
+      logger.log(`[useRealtimeMessages] 收到新訊息 id=${msg.id}，取完整資料`)
 
       const supabase = createClient()
       const { data, error } = await supabase
@@ -64,7 +65,7 @@ export function useRealtimeMessages({
         .single()
 
       if (error) {
-        console.error('[useRealtimeMessages] 取訊息詳情失敗', error)
+        logger.error('[useRealtimeMessages] 取訊息詳情失敗', error)
         return
       }
 

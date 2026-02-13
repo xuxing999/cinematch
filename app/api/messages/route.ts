@@ -1,5 +1,6 @@
 // @ts-nocheck
 export const dynamic = 'force-dynamic'
+import { logger } from '@/lib/utils/logger'
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 
@@ -26,7 +27,7 @@ export async function GET(request: Request) {
 
     // 如果請求對話列表（conversations）
     if (type === 'conversations') {
-      console.log('📊 GET /api/messages - 獲取對話列表')
+      logger.log('📊 GET /api/messages - 獲取對話列表')
 
       // 獲取所有相關訊息
       const { data: messages, error } = await supabase
@@ -43,7 +44,7 @@ export async function GET(request: Request) {
 
       // 如果沒有訊息，返回空陣列
       if (!messages || messages.length === 0) {
-        console.log('✅ GET /api/messages - 沒有對話')
+        logger.log('✅ GET /api/messages - 沒有對話')
         return NextResponse.json({ conversations: [] })
       }
 
@@ -76,7 +77,7 @@ export async function GET(request: Request) {
       })
 
       const conversations = Array.from(conversationsMap.values())
-      console.log('✅ GET /api/messages - 對話數量:', conversations.length)
+      logger.log('✅ GET /api/messages - 對話數量:', conversations.length)
 
       return NextResponse.json({ conversations })
     }
@@ -114,7 +115,7 @@ export async function GET(request: Request) {
 
     return NextResponse.json(data)
   } catch (error) {
-    console.error('Error fetching messages:', error)
+    logger.error('Error fetching messages:', error)
     return NextResponse.json(
       { error: 'Failed to fetch messages' },
       { status: 500 }
@@ -132,10 +133,10 @@ export async function POST(request: Request) {
 
     // 檢查用戶認證
     const { data: { user } } = await supabase.auth.getUser()
-    console.log('POST /api/messages - User:', user?.id)
+    logger.log('POST /api/messages - User:', user?.id)
 
     if (!user) {
-      console.error('POST /api/messages - Unauthorized: No user')
+      logger.error('POST /api/messages - Unauthorized: No user')
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
@@ -143,7 +144,7 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json()
-    console.log('POST /api/messages - Body:', {
+    logger.log('POST /api/messages - Body:', {
       receiver_id: body.receiver_id,
       content_length: body.content?.length
     })
@@ -163,14 +164,14 @@ export async function POST(request: Request) {
       .single()
 
     if (error) {
-      console.error('POST /api/messages - Supabase error:', error)
+      logger.error('POST /api/messages - Supabase error:', error)
       throw error
     }
 
-    console.log('POST /api/messages - Success:', (data as any)?.id)
+    logger.log('POST /api/messages - Success:', (data as any)?.id)
     return NextResponse.json(data, { status: 201 })
   } catch (error) {
-    console.error('Error creating message:', error)
+    logger.error('Error creating message:', error)
     return NextResponse.json(
       { error: 'Failed to create message', details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
@@ -210,7 +211,7 @@ export async function PATCH(request: Request) {
 
     return NextResponse.json({ success: true })
   } catch (error) {
-    console.error('Error updating messages:', error)
+    logger.error('Error updating messages:', error)
     return NextResponse.json(
       { error: 'Failed to update messages' },
       { status: 500 }

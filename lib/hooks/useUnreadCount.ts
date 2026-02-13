@@ -1,6 +1,7 @@
 // @ts-nocheck
 'use client'
 
+import { logger } from '@/lib/utils/logger'
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 
@@ -23,7 +24,7 @@ export function useUnreadCount(userId: string | undefined) {
 
     // 定義獲取未讀數的函數（直接在 useEffect 內）
     const fetchUnreadCount = async () => {
-      console.log('📊 useUnreadCount: 獲取未讀數', userId.substring(0, 8))
+      logger.log('📊 useUnreadCount: 獲取未讀數', userId.substring(0, 8))
 
       try {
         const response = await fetch('/api/messages?type=conversations')
@@ -38,10 +39,10 @@ export function useUnreadCount(userId: string | undefined) {
           0
         )
 
-        console.log('✅ useUnreadCount: 總未讀數', total)
+        logger.log('✅ useUnreadCount: 總未讀數', total)
         setUnreadCount(total)
       } catch (error) {
-        console.error('❌ useUnreadCount: 錯誤', error)
+        logger.error('❌ useUnreadCount: 錯誤', error)
         setUnreadCount(0)
       } finally {
         setLoading(false)
@@ -52,7 +53,7 @@ export function useUnreadCount(userId: string | undefined) {
     fetchUnreadCount()
 
     // 訂閱新訊息（使用 event: '*' 統一監聽所有事件，避免 binding mismatch 錯誤）
-    console.log('🔌 useUnreadCount: 建立 Realtime 連線', userId.substring(0, 8))
+    logger.log('🔌 useUnreadCount: 建立 Realtime 連線', userId.substring(0, 8))
 
     const channel = supabase
       .channel(`unread-count-${userId}`)
@@ -67,46 +68,46 @@ export function useUnreadCount(userId: string | undefined) {
           const eventType = payload.eventType
           const record = payload.new || payload.old
 
-          console.log(`📨 useUnreadCount: 收到 ${eventType} 事件`, record)
+          logger.log(`📨 useUnreadCount: 收到 ${eventType} 事件`, record)
 
           // 客戶端過濾：只處理與我相關的訊息
           if (eventType === 'INSERT') {
             // 新訊息：如果是發給我的，未讀數 +1
             if (payload.new.receiver_id !== userId) {
-              console.log('⚠️ useUnreadCount: 訊息不是發給我的，忽略')
+              logger.log('⚠️ useUnreadCount: 訊息不是發給我的，忽略')
               return
             }
-            console.log('✅ useUnreadCount: 這是發給我的新訊息，未讀數 +1')
+            logger.log('✅ useUnreadCount: 這是發給我的新訊息，未讀數 +1')
             setUnreadCount((prev) => {
               const newCount = prev + 1
-              console.log('🔢 useUnreadCount: 未讀數更新', prev, '->', newCount)
+              logger.log('🔢 useUnreadCount: 未讀數更新', prev, '->', newCount)
               return newCount
             })
           } else if (eventType === 'UPDATE') {
             // 更新訊息：如果是我的訊息被更新（例如標記已讀），重新獲取未讀數
             if (payload.new.receiver_id !== userId) {
-              console.log('⚠️ useUnreadCount: 更新的訊息不是發給我的，忽略')
+              logger.log('⚠️ useUnreadCount: 更新的訊息不是發給我的，忽略')
               return
             }
-            console.log('✅ useUnreadCount: 我的訊息被更新，重新獲取未讀數')
+            logger.log('✅ useUnreadCount: 我的訊息被更新，重新獲取未讀數')
             fetchUnreadCount()
           }
         }
       )
       .subscribe((status, err) => {
-        console.log('🔌 useUnreadCount: 訂閱狀態', status, err)
+        logger.log('🔌 useUnreadCount: 訂閱狀態', status, err)
 
         if (status === 'SUBSCRIBED') {
-          console.log('✅ useUnreadCount: 訂閱成功！')
+          logger.log('✅ useUnreadCount: 訂閱成功！')
         }
 
         if (status === 'CHANNEL_ERROR') {
-          console.error('❌ useUnreadCount: 訂閱失敗', err)
+          logger.error('❌ useUnreadCount: 訂閱失敗', err)
         }
       })
 
     return () => {
-      console.log('🔌 useUnreadCount: 取消訂閱')
+      logger.log('🔌 useUnreadCount: 取消訂閱')
       supabase.removeChannel(channel)
     }
   }, [userId]) // 只依賴 userId

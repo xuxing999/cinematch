@@ -1,5 +1,6 @@
 'use client'
 
+import { logger } from '@/lib/utils/logger'
 import { useEffect, useState } from 'react'
 import { TMDBMovie } from '@/lib/tmdb/types'
 import MovieGrid from '@/components/home/MovieGrid'
@@ -25,7 +26,7 @@ export default function HomePage() {
       const data = await response.json()
       setMovies(data.results || [])
     } catch (error) {
-      console.error('Error fetching movies:', error)
+      logger.error('Error fetching movies:', error)
     } finally {
       setLoading(false)
     }
@@ -37,7 +38,7 @@ export default function HomePage() {
       const data = await response.json()
       setSignalStats(data)
     } catch (error) {
-      console.error('Error fetching signal stats:', error)
+      logger.error('Error fetching signal stats:', error)
     }
   }
 

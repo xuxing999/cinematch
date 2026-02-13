@@ -1,6 +1,7 @@
 // @ts-nocheck
 'use client'
 
+import { logger } from '@/lib/utils/logger'
 import { useEffect, useState, useCallback, useRef } from 'react'
 import { SignalWithProfile, SignalTag } from '@/types/models'
 import { useSupabaseRealtime } from '@/lib/hooks/useSupabaseRealtime'
@@ -33,9 +34,9 @@ export function useSignals(options: UseSignalsOptions = {}) {
       if (!response.ok) return
       const data = await response.json()
       setSignals(data)
-      console.log('[useSignals] Realtime 觸發靜默刷新，訊號數:', data.length)
+      logger.log('[useSignals] Realtime 觸發靜默刷新，訊號數:', data.length)
     } catch (err) {
-      console.error('[useSignals] 靜默刷新失敗', err)
+      logger.error('[useSignals] 靜默刷新失敗', err)
     }
   }, [])
 
@@ -49,7 +50,7 @@ export function useSignals(options: UseSignalsOptions = {}) {
     schema: 'public',
     onEvent: (payload) => {
       if (payload.eventType === 'INSERT' || payload.eventType === 'DELETE') {
-        console.log(`[useSignals] 收到 ${payload.eventType} 事件，立即刷新大廳`)
+        logger.log(`[useSignals] 收到 ${payload.eventType} 事件，立即刷新大廳`)
         silentRefetch()
       }
     },
@@ -66,7 +67,7 @@ export function useSignals(options: UseSignalsOptions = {}) {
       if (options.tag) params.append('tag', options.tag)
 
       const url = `/api/signals?${params.toString()}`
-      console.log('📡 useSignals: 獲取訊號', { url, movieId: options.movieId, tag: options.tag })
+      logger.log('📡 useSignals: 獲取訊號', { url, movieId: options.movieId, tag: options.tag })
 
       const response = await fetch(url)
 
@@ -75,11 +76,11 @@ export function useSignals(options: UseSignalsOptions = {}) {
       }
 
       const data = await response.json()
-      console.log('📊 useSignals: 收到訊號', { count: data.length, signals: data })
+      logger.log('📊 useSignals: 收到訊號', { count: data.length, signals: data })
       setSignals(data)
     } catch (err) {
       setError(err instanceof Error ? err : new Error('Unknown error'))
-      console.error('❌ useSignals: 錯誤', err)
+      logger.error('❌ useSignals: 錯誤', err)
     } finally {
       setLoading(false)
     }
@@ -108,15 +109,15 @@ export function useSignals(options: UseSignalsOptions = {}) {
       }
 
       const newSignal = await response.json()
-      console.log('✅ useSignals: 訊號建立成功', newSignal.id)
+      logger.log('✅ useSignals: 訊號建立成功', newSignal.id)
 
       // 重新獲取訊號列表
-      console.log('🔄 useSignals: 重新獲取訊號列表...')
+      logger.log('🔄 useSignals: 重新獲取訊號列表...')
       await fetchSignals()
 
       return { data: newSignal, error: null }
     } catch (err) {
-      console.error('Error creating signal:', err)
+      logger.error('Error creating signal:', err)
       return { data: null, error: err instanceof Error ? err : new Error('Unknown error') }
     }
   }
@@ -136,7 +137,7 @@ export function useSignals(options: UseSignalsOptions = {}) {
 
       return { error: null }
     } catch (err) {
-      console.error('Error deleting signal:', err)
+      logger.error('Error deleting signal:', err)
       return { error: err instanceof Error ? err : new Error('Unknown error') }
     }
   }

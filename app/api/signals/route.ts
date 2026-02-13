@@ -1,5 +1,6 @@
 // @ts-nocheck
 export const dynamic = 'force-dynamic'
+import { logger } from '@/lib/utils/logger'
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 
@@ -40,7 +41,7 @@ export async function GET(request: Request) {
 
     return NextResponse.json(data)
   } catch (error) {
-    console.error('Error fetching signals:', error)
+    logger.error('Error fetching signals:', error)
     return NextResponse.json(
       { error: 'Failed to fetch signals' },
       { status: 500 }
@@ -58,10 +59,10 @@ export async function POST(request: Request) {
 
     // 檢查用戶認證
     const { data: { user } } = await supabase.auth.getUser()
-    console.log('POST /api/signals - User:', user?.id)
+    logger.log('POST /api/signals - User:', user?.id)
 
     if (!user) {
-      console.error('POST /api/signals - Unauthorized: No user')
+      logger.error('POST /api/signals - Unauthorized: No user')
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
@@ -69,7 +70,7 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json()
-    console.log('POST /api/signals - Body:', body)
+    logger.log('POST /api/signals - Body:', body)
 
     const { data, error } = await supabase
       .from('signals')
@@ -90,14 +91,14 @@ export async function POST(request: Request) {
       .single()
 
     if (error) {
-      console.error('POST /api/signals - Supabase error:', error)
+      logger.error('POST /api/signals - Supabase error:', error)
       throw error
     }
 
-    console.log('POST /api/signals - Success:', data?.id)
+    logger.log('POST /api/signals - Success:', data?.id)
     return NextResponse.json(data, { status: 201 })
   } catch (error) {
-    console.error('Error creating signal:', error)
+    logger.error('Error creating signal:', error)
     return NextResponse.json(
       { error: 'Failed to create signal', details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }

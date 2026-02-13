@@ -1,5 +1,6 @@
 'use client'
 
+import { logger } from '@/lib/utils/logger'
 import { useEffect, useCallback } from 'react'
 import { useMessages } from '@/lib/hooks/useMessages'
 import { Profile } from '@/types/models'
@@ -45,7 +46,7 @@ export default function ChatRoom({ currentUserId, otherUser }: ChatRoomProps) {
     if (latestIncomingMessage.sender_id !== otherUser.id) return
     if (latestIncomingMessage.receiver_id !== currentUserId) return
 
-    console.log('[ChatRoom] 收到新訊息，加入聊天視窗', latestIncomingMessage.id)
+    logger.log('[ChatRoom] 收到新訊息，加入聊天視窗', latestIncomingMessage.id)
 
     /**
      * 用 otherUser prop（我們已經有完整 Profile）直接組出 MessageWithSender，

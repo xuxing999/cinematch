@@ -1,6 +1,7 @@
 // @ts-nocheck
 'use client'
 
+import { logger } from '@/lib/utils/logger'
 import { createContext, useContext, useEffect, useState, useMemo } from 'react'
 import { User } from '@supabase/supabase-js'
 import { createClient } from '@/lib/supabase/client'
@@ -28,18 +29,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // 匿名登入
   const signInAnonymously = async () => {
     try {
-      console.log('🚀 開始執行匿名登入...')
+      logger.log('🚀 開始執行匿名登入...')
       const { data, error } = await supabase.auth.signInAnonymously()
 
       if (error) {
-        console.error('❌ 匿名登入錯誤:', error)
+        logger.error('❌ 匿名登入錯誤:', error)
         throw error
       }
 
-      console.log('✅ 匿名登入成功:', data.user?.id)
+      logger.log('✅ 匿名登入成功:', data.user?.id)
       return { user: data.user, error: null }
     } catch (error) {
-      console.error('❌ 匿名登入失敗 (catch):', error)
+      logger.error('❌ 匿名登入失敗 (catch):', error)
       return { user: null, error }
     }
   }
@@ -50,14 +51,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const initAuth = async () => {
       try {
-        console.log('🔐 AuthProvider: 初始化認證...')
+        logger.log('🔐 AuthProvider: 初始化認證...')
 
         // 先設定監聽器（避免錯過事件）
         const { data: { subscription } } = supabase.auth.onAuthStateChange(
           async (event, session) => {
             if (!isMounted) return
 
-            console.log('🔄 AuthProvider: 認證狀態變化', event, session?.user?.id)
+            logger.log('🔄 AuthProvider: 認證狀態變化', event, session?.user?.id)
 
             if (event === 'SIGNED_IN' && session?.user) {
               setUser(session.user)
@@ -72,16 +73,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
                 if (isMounted) {
                   setProfile(profile)
-                  console.log('✅ AuthProvider: Profile 已載入', profile?.display_name)
+                  logger.log('✅ AuthProvider: Profile 已載入', profile?.display_name)
                 }
               } catch (error) {
-                console.error('❌ AuthProvider: 載入 Profile 失敗', error)
+                logger.error('❌ AuthProvider: 載入 Profile 失敗', error)
               }
             } else if (event === 'SIGNED_OUT') {
               if (isMounted) {
                 setUser(null)
                 setProfile(null)
-                console.log('⚠️ AuthProvider: Session 已清除')
+                logger.log('⚠️ AuthProvider: Session 已清除')
               }
             }
 
@@ -99,7 +100,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (!isMounted) return
 
         if (session?.user) {
-          console.log('✅ AuthProvider: 用戶已登入', session.user.id)
+          logger.log('✅ AuthProvider: 用戶已登入', session.user.id)
           setUser(session.user)
 
           // 取得用戶 Profile
@@ -112,19 +113,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
             if (isMounted) {
               setProfile(profile)
-              console.log('✅ AuthProvider: Profile 已載入', profile?.display_name)
+              logger.log('✅ AuthProvider: Profile 已載入', profile?.display_name)
             }
           } catch (error) {
-            console.error('❌ AuthProvider: 載入 Profile 失敗', error)
+            logger.error('❌ AuthProvider: 載入 Profile 失敗', error)
           }
         } else {
           // 如果沒有用戶，自動進行匿名登入
-          console.log('⚠️ AuthProvider: 無用戶，開始匿名登入...')
+          logger.log('⚠️ AuthProvider: 無用戶，開始匿名登入...')
           const result = await signInAnonymously()
           if (result.user) {
-            console.log('✅ AuthProvider: 匿名登入成功', result.user.id)
+            logger.log('✅ AuthProvider: 匿名登入成功', result.user.id)
           } else {
-            console.error('❌ AuthProvider: 匿名登入失敗', result.error)
+            logger.error('❌ AuthProvider: 匿名登入失敗', result.error)
           }
         }
 
@@ -132,7 +133,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setLoading(false)
         }
       } catch (error) {
-        console.error('❌ AuthProvider: 初始化錯誤', error)
+        logger.error('❌ AuthProvider: 初始化錯誤', error)
         if (isMounted) {
           setLoading(false)
         }
@@ -161,7 +162,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       return { error: null }
     } catch (error) {
-      console.error('Error signing out:', error)
+      logger.error('Error signing out:', error)
       return { error }
     }
   }
@@ -184,7 +185,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       return { data, error: null }
     } catch (error) {
-      console.error('Error updating profile:', error)
+      logger.error('Error updating profile:', error)
       return { data: null, error }
     }
   }

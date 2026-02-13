@@ -1,5 +1,6 @@
 'use client'
 
+import { logger } from '@/lib/utils/logger'
 import { useState, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { useAuthContext } from '@/components/providers/AuthProvider'
@@ -40,7 +41,7 @@ function LobbyContent() {
     if (!formData.movie || !formData.tag) return
 
     setIsSubmitting(true)
-    console.log('🚀 開始發布訊號:', formData)
+    logger.log('🚀 開始發布訊號:', formData)
 
     const { data, error } = await createSignal({
       movie_id: formData.movie.id,
@@ -55,10 +56,10 @@ function LobbyContent() {
     setIsSubmitting(false)
 
     if (error) {
-      console.error('❌ 發布失敗:', error)
+      logger.error('❌ 發布失敗:', error)
       alert('發布訊號失敗：' + error.message)
     } else {
-      console.log('✅ 發布成功:', data)
+      logger.log('✅ 發布成功:', data)
       alert('✅ 發布成功！訊號 ID: ' + data.id)
       setIsFormModalOpen(false)
     }

@@ -1,5 +1,6 @@
 'use client'
 
+import { logger } from '@/lib/utils/logger'
 import { useState, useRef, KeyboardEvent } from 'react'
 import { Send } from 'lucide-react'
 import { cn } from '@/lib/utils/cn'
@@ -24,7 +25,7 @@ export default function MessageInput({ onSend, disabled }: MessageInputProps) {
     try {
       await onSend(trimmed)
     } catch (error) {
-      console.error('發送訊息失敗:', error)
+      logger.error('發送訊息失敗:', error)
       setContent(trimmed)
     } finally {
       setSending(false)

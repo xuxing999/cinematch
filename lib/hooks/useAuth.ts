@@ -1,6 +1,7 @@
 // @ts-nocheck
 'use client'
 
+import { logger } from '@/lib/utils/logger'
 import { useEffect, useState } from 'react'
 import { User } from '@supabase/supabase-js'
 import { createClient } from '@/lib/supabase/client'
@@ -30,7 +31,7 @@ export function useAuth() {
           setProfile(profile)
         }
       } catch (error) {
-        console.error('Error fetching user:', error)
+        logger.error('Error fetching user:', error)
       } finally {
         setLoading(false)
       }
@@ -75,7 +76,7 @@ export function useAuth() {
 
       return { user: data.user, error: null }
     } catch (error) {
-      console.error('Error signing in anonymously:', error)
+      logger.error('Error signing in anonymously:', error)
       return { user: null, error }
     }
   }
@@ -92,7 +93,7 @@ export function useAuth() {
 
       return { error: null }
     } catch (error) {
-      console.error('Error signing out:', error)
+      logger.error('Error signing out:', error)
       return { error }
     }
   }
@@ -115,7 +116,7 @@ export function useAuth() {
 
       return { data, error: null }
     } catch (error) {
-      console.error('Error updating profile:', error)
+      logger.error('Error updating profile:', error)
       return { data: null, error }
     }
   }
