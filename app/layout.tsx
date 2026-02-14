@@ -5,6 +5,7 @@ import { AuthProvider } from '@/components/providers/AuthProvider'
 import { RealtimeProvider } from '@/components/providers/RealtimeProvider'
 import Navbar from '@/components/layout/Navbar'
 import BottomNav from '@/components/layout/BottomNav'
+import DisclaimerModal from '@/components/ui/DisclaimerModal'
 
 const playfair = Playfair_Display({
   subsets: ['latin'],
@@ -47,6 +48,7 @@ export default function RootLayout({
               {children}
             </main>
             <BottomNav />
+            <DisclaimerModal />
           </RealtimeProvider>
         </AuthProvider>
       </body>

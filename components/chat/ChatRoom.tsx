@@ -1,13 +1,15 @@
 'use client'
 
 import { logger } from '@/lib/utils/logger'
-import { useEffect, useCallback } from 'react'
+import { useEffect, useCallback, useState } from 'react'
 import { useMessages } from '@/lib/hooks/useMessages'
 import { Profile } from '@/types/models'
 import MessageList from './MessageList'
 import MessageInput from './MessageInput'
+import SafetyBanner from './SafetyBanner'
 import Avatar from '@/components/ui/Avatar'
-import { ArrowLeft, Clock } from 'lucide-react'
+import ReportModal from '@/components/ui/ReportModal'
+import { ArrowLeft, Clock, Flag } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useRealtimeContext } from '@/components/providers/RealtimeProvider'
 
@@ -18,6 +20,7 @@ interface ChatRoomProps {
 
 export default function ChatRoom({ currentUserId, otherUser }: ChatRoomProps) {
   const router = useRouter()
+  const [showReport, setShowReport] = useState(false)
   const {
     messages,
     loading,
@@ -119,8 +122,20 @@ export default function ChatRoom({ currentUserId, otherUser }: ChatRoomProps) {
               </p>
             </div>
           </div>
+
+          {/* 檢舉此用戶 */}
+          <button
+            onClick={() => setShowReport(true)}
+            title="檢舉此用戶"
+            className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg hover:bg-dark-100 transition-colors text-stone-600 hover:text-stone-400"
+          >
+            <Flag size={15} />
+          </button>
         </div>
       </div>
+
+      {/* 安全警語橫幅 */}
+      <SafetyBanner />
 
       {/* 訊息列表 */}
       <MessageList
@@ -133,6 +148,16 @@ export default function ChatRoom({ currentUserId, otherUser }: ChatRoomProps) {
       <MessageInput
         onSend={handleSendMessage}
         disabled={!currentUserId}
+      />
+
+      {/* 檢舉 Modal */}
+      <ReportModal
+        target={showReport ? {
+          type: 'user',
+          targetId: otherUser.id,
+          displayName: otherUser.display_name,
+        } : null}
+        onClose={() => setShowReport(false)}
       />
     </div>
   )

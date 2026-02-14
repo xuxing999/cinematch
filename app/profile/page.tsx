@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useAuthContext } from '@/components/providers/AuthProvider'
 import { useRealtimeContext } from '@/components/providers/RealtimeProvider'
 import Avatar from '@/components/ui/Avatar'
-import { User, Wifi, WifiOff, Clock, Shield, RefreshCw } from 'lucide-react'
+import { User, Wifi, WifiOff, Clock, Shield, RefreshCw, BookOpen, Database, Film, ChevronDown, ChevronUp } from 'lucide-react'
 import { cn } from '@/lib/utils/cn'
 
 // ─── 連線狀態徽章 ─────────────────────────────────────────
@@ -62,6 +62,116 @@ function InfoRow({
       >
         {value}
       </span>
+    </div>
+  )
+}
+
+// ─── 隱私政策區塊 ────────────────────────────────────────
+function PrivacyPolicySection() {
+  const [expanded, setExpanded] = useState(false)
+
+  return (
+    <div className="bg-dark-200 border border-dark-50/30 rounded-xl overflow-hidden">
+      {/* 標題列（可點擊展開）*/}
+      <button
+        onClick={() => setExpanded(!expanded)}
+        className="w-full flex items-center justify-between px-5 py-4 hover:bg-dark-100/40 transition-colors text-left"
+        aria-expanded={expanded}
+      >
+        <div className="flex items-center gap-3">
+          <Shield size={15} className="text-stone-500 flex-shrink-0" />
+          <span className="text-sm font-semibold text-stone-300">隱私承諾與數據處理說明</span>
+        </div>
+        {expanded
+          ? <ChevronUp size={14} className="text-stone-600 flex-shrink-0" />
+          : <ChevronDown size={14} className="text-stone-600 flex-shrink-0" />
+        }
+      </button>
+
+      {/* 展開內容 */}
+      {expanded && (
+        <div className="px-5 pb-5 space-y-5 border-t border-dark-50/30">
+
+          {/* 快速承諾摘要 */}
+          <div className="pt-4 space-y-1.5">
+            {[
+              { dot: 'text-emerald-500', text: '匿名身份：不收集姓名、電話或 Email，僅持有 Supabase 自動產生的匿名 UUID。' },
+              { dot: 'text-emerald-500', text: '24 小時自毀：所有訊號與聊天訊息在建立後 24 小時由資料庫排程自動刪除。' },
+              { dot: 'text-emerald-500', text: 'RLS 隔離：Row Level Security 確保每位用戶只能讀取自己的訊息，平台開發者亦不主動查閱內容。' },
+              { dot: 'text-emerald-500', text: '不追蹤：無 Google Analytics、無 Meta Pixel、無任何第三方廣告追蹤腳本。' },
+            ].map((item, i) => (
+              <div key={i} className="flex items-start gap-2">
+                <span className={cn('text-xs flex-shrink-0 mt-0.5', item.dot)}>·</span>
+                <p className="text-xs text-stone-500 leading-relaxed">{item.text}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* TMDB 數據來源 */}
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <Film size={13} className="text-stone-500 flex-shrink-0" />
+              <h4 className="text-xs font-semibold text-stone-400 uppercase tracking-widest">
+                電影資料來源（TMDB）
+              </h4>
+            </div>
+            <p className="text-xs text-stone-500 leading-relaxed">
+              本平台的電影海報、片名、上映資訊均來自
+              <span className="text-stone-400 font-medium"> TMDB（The Movie Database）</span>
+              ，依 TMDB 服務條款（非商業個人用途）授權使用。CineMatch 不主張任何電影著作權，所有媒體版權歸各原始持有人所有。
+            </p>
+            <p className="text-xs text-stone-600 leading-relaxed">
+              This product uses the TMDB API but is not endorsed or certified by TMDB.
+            </p>
+          </div>
+
+          {/* Supabase 數據儲存 */}
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <Database size={13} className="text-stone-500 flex-shrink-0" />
+              <h4 className="text-xs font-semibold text-stone-400 uppercase tracking-widest">
+                數據儲存（Supabase）
+              </h4>
+            </div>
+            <div className="space-y-1.5">
+              {[
+                { label: '儲存位置', value: 'Supabase（PostgreSQL），資料中心位於 AWS ap-northeast-1（東京）或 ap-southeast-1（新加坡）' },
+                { label: '儲存內容', value: '匿名 UUID、自訂暱稱（可選）、訊號標籤與電影選擇、24小時內的聊天訊息' },
+                { label: '不儲存', value: '真實姓名、電話、Email、IP 位址、裝置識別符、位置資訊' },
+                { label: '保留期限', value: '訊號與訊息：24 小時後自動刪除。匿名帳號（profiles）：無到期限制，但不包含任何可識別個人的資訊' },
+              ].map((row, i) => (
+                <div key={i} className="flex items-start gap-2 py-1.5 border-b border-dark-50/20 last:border-0">
+                  <span className="text-xs text-stone-600 flex-shrink-0 w-16 pt-0.5">{row.label}</span>
+                  <span className="text-xs text-stone-500 leading-relaxed">{row.value}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* 用戶權利 */}
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <BookOpen size={13} className="text-stone-500 flex-shrink-0" />
+              <h4 className="text-xs font-semibold text-stone-400 uppercase tracking-widest">
+                您的權利
+              </h4>
+            </div>
+            <p className="text-xs text-stone-500 leading-relaxed">
+              由於本平台採匿名機制，我們無法主動驗證身份。若您希望刪除所有相關資料，可直接清除瀏覽器的 localStorage 與 Cookie（這將重置您的匿名帳號），或透過 GitHub Issues 聯繫開發者。
+            </p>
+          </div>
+
+          {/* 免責聲明 */}
+          <div className="bg-dark-300 border border-stone-700/30 rounded-lg p-3.5 space-y-1">
+            <p className="text-[11px] font-semibold text-stone-500 uppercase tracking-widest">免責聲明</p>
+            <p className="text-[11px] text-stone-600 leading-relaxed">
+              本平台為個人 Side Project，以「現狀」提供服務，不對服務中斷、數據遺失或任何因使用本平台所生之損害負責。請勿在對話中分享任何敏感個人資訊。
+            </p>
+          </div>
+
+          <p className="text-[11px] text-stone-700 text-right">最後更新：2026-02-14</p>
+        </div>
+      )}
     </div>
   )
 }
@@ -243,33 +353,8 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        {/* ─── 隱私說明卡 ─── */}
-        <div className="bg-dark-200 border border-dark-50/30 rounded-xl p-5">
-          <div className="flex items-start gap-3">
-            <Shield size={16} className="text-stone-500 flex-shrink-0 mt-0.5" />
-            <div className="space-y-2">
-              <h3 className="text-sm font-semibold text-stone-300">隱私承諾</h3>
-              <ul className="text-xs text-stone-500 space-y-1.5">
-                <li className="flex items-start gap-1.5">
-                  <span className="text-emerald-500 flex-shrink-0">·</span>
-                  匿名身份：不綁定手機號碼或 Email
-                </li>
-                <li className="flex items-start gap-1.5">
-                  <span className="text-emerald-500 flex-shrink-0">·</span>
-                  24 小時自毀：所有訊號與訊息自動銷毀
-                </li>
-                <li className="flex items-start gap-1.5">
-                  <span className="text-emerald-500 flex-shrink-0">·</span>
-                  端對端隔離：RLS 確保只有你能讀取自己的訊息
-                </li>
-                <li className="flex items-start gap-1.5">
-                  <span className="text-emerald-500 flex-shrink-0">·</span>
-                  不追蹤：無廣告追蹤、無第三方分析
-                </li>
-              </ul>
-            </div>
-          </div>
-        </div>
+        {/* ─── 隱私與數據處理說明（可展開）─── */}
+        <PrivacyPolicySection />
 
         {/* ─── 24h 說明 ─── */}
         <div className="flex items-center gap-2 text-xs text-stone-600 justify-center pb-4">

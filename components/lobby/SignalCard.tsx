@@ -1,6 +1,7 @@
 'use client'
 
 import Image from 'next/image'
+import { useState } from 'react'
 import { SignalWithProfile, SIGNAL_TAGS } from '@/types/models'
 import { getTMDBImageUrl } from '@/lib/tmdb/types'
 import { formatRelativeTime, formatShowtime } from '@/lib/utils/date'
@@ -8,7 +9,8 @@ import Card from '@/components/ui/Card'
 import Badge from '@/components/ui/Badge'
 import Avatar from '@/components/ui/Avatar'
 import Button from '@/components/ui/Button'
-import { MapPin, Clock, MessageCircle, Trash2 } from 'lucide-react'
+import ReportModal from '@/components/ui/ReportModal'
+import { MapPin, Clock, MessageCircle, Trash2, Flag } from 'lucide-react'
 import { cn } from '@/lib/utils/cn'
 
 interface SignalCardProps {
@@ -19,6 +21,8 @@ interface SignalCardProps {
 }
 
 export default function SignalCard({ signal, isOwner, onContact, onDelete }: SignalCardProps) {
+  const [showReport, setShowReport] = useState(false)
+
   const tagInfo = SIGNAL_TAGS[signal.tag]
   const posterUrl = getTMDBImageUrl(signal.movie_poster, 'poster', 'small')
 
@@ -127,8 +131,30 @@ export default function SignalCard({ signal, isOwner, onContact, onDelete }: Sig
               <p className="text-[11px] text-stone-500 tracking-wide">這是您發布的訊號</p>
             </div>
           )}
+
+          {/* 檢舉按鈕（僅對非自己的訊號顯示）*/}
+          {!isOwner && (
+            <button
+              onClick={() => setShowReport(true)}
+              className="flex items-center gap-1.5 text-[11px] text-stone-600 hover:text-stone-400 transition-colors mt-1"
+              title="檢舉此訊號"
+            >
+              <Flag size={11} />
+              <span>檢舉</span>
+            </button>
+          )}
         </div>
       </div>
+
+      {/* 檢舉 Modal */}
+      <ReportModal
+        target={showReport ? {
+          type: 'signal',
+          targetId: signal.id,
+          displayName: `${signal.profiles.display_name} 的訊號「${signal.movie_title}」`,
+        } : null}
+        onClose={() => setShowReport(false)}
+      />
     </Card>
   )
 }
