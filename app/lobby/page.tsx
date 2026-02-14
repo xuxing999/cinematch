@@ -1,7 +1,7 @@
 'use client'
 
 import { logger } from '@/lib/utils/logger'
-import { useState, Suspense } from 'react'
+import { useState, Suspense, useCallback } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { useAuthContext } from '@/components/providers/AuthProvider'
 import { useSignals } from '@/lib/hooks/useSignals'
@@ -11,7 +11,7 @@ import SignalForm from '@/components/lobby/SignalForm'
 import Badge from '@/components/ui/Badge'
 import Modal from '@/components/ui/Modal'
 import Button from '@/components/ui/Button'
-import { Radio, Plus, Filter, RefreshCw } from 'lucide-react'
+import { Radio, Plus, Filter, RefreshCw, CheckCircle2, XCircle } from 'lucide-react'
 import { cn } from '@/lib/utils/cn'
 import { trackPostSignal, trackStartChat } from '@/lib/utils/gtag'
 
@@ -26,6 +26,12 @@ function LobbyContent() {
   const [selectedTag, setSelectedTag] = useState<SignalTag | null>(null)
   const [isFormModalOpen, setIsFormModalOpen] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null)
+
+  const showToast = useCallback((type: 'success' | 'error', message: string) => {
+    setToast({ type, message })
+    setTimeout(() => setToast(null), 3500)
+  }, [])
 
   const { signals, loading, fetchSignals, createSignal, deleteSignal } = useSignals({
     movieId,
@@ -58,12 +64,12 @@ function LobbyContent() {
 
     if (error) {
       logger.error('❌ 發布失敗:', error)
-      alert('發布訊號失敗：' + error.message)
+      showToast('error', '發布訊號失敗，請稍後再試')
     } else {
       logger.log('✅ 發布成功:', data)
       // GA4：成功發布訊號
       trackPostSignal(formData.movie.title, formData.tag)
-      alert('✅ 發布成功！訊號 ID: ' + data.id)
+      showToast('success', '訊號已發布！靜待影伴回應 ✦')
       setIsFormModalOpen(false)
     }
   }
@@ -81,6 +87,21 @@ function LobbyContent() {
 
   return (
     <div className="min-h-screen">
+      {/* ─── Toast 通知 ─── */}
+      {toast && (
+        <div className={cn(
+          'fixed top-20 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2.5 px-4 py-3 rounded-xl border shadow-lg text-sm font-medium transition-all animate-fade-in',
+          toast.type === 'success'
+            ? 'bg-emerald-950/90 border-emerald-700/60 text-emerald-300'
+            : 'bg-red-950/90 border-red-700/60 text-red-300'
+        )}>
+          {toast.type === 'success'
+            ? <CheckCircle2 size={16} className="flex-shrink-0" />
+            : <XCircle size={16} className="flex-shrink-0" />
+          }
+          {toast.message}
+        </div>
+      )}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
         {/* 頁面標題 */}
@@ -97,7 +118,7 @@ function LobbyContent() {
                 <p className="text-stone-400 text-sm mt-1">尋找志同道合的影伴</p>
                 {user && (
                   <p className="text-[11px] text-stone-600 mt-0.5">
-                    {user.id.substring(0, 8)}...
+                    已登入（匿名）
                   </p>
                 )}
               </div>

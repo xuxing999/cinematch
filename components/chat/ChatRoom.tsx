@@ -1,7 +1,7 @@
 'use client'
 
 import { logger } from '@/lib/utils/logger'
-import { useEffect, useCallback, useState } from 'react'
+import { useEffect, useCallback, useState, useRef } from 'react'
 import { useMessages } from '@/lib/hooks/useMessages'
 import { Profile } from '@/types/models'
 import MessageList from './MessageList'
@@ -9,7 +9,7 @@ import MessageInput from './MessageInput'
 import SafetyBanner from './SafetyBanner'
 import Avatar from '@/components/ui/Avatar'
 import ReportModal from '@/components/ui/ReportModal'
-import { ArrowLeft, Clock, Flag } from 'lucide-react'
+import { ArrowLeft, Clock, Flag, XCircle } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useRealtimeContext } from '@/components/providers/RealtimeProvider'
 
@@ -21,6 +21,8 @@ interface ChatRoomProps {
 export default function ChatRoom({ currentUserId, otherUser }: ChatRoomProps) {
   const router = useRouter()
   const [showReport, setShowReport] = useState(false)
+  const [sendError, setSendError] = useState<string | null>(null)
+  const errorTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const {
     messages,
     loading,
@@ -86,7 +88,9 @@ export default function ChatRoom({ currentUserId, otherUser }: ChatRoomProps) {
   const handleSendMessage = useCallback(async (content: string) => {
     const { error } = await sendMessage(otherUser.id, content)
     if (error) {
-      alert('發送失敗：' + error.message)
+      if (errorTimerRef.current) clearTimeout(errorTimerRef.current)
+      setSendError('訊息發送失敗，請重試')
+      errorTimerRef.current = setTimeout(() => setSendError(null), 4000)
     }
   }, [sendMessage, otherUser.id])
 
@@ -143,6 +147,14 @@ export default function ChatRoom({ currentUserId, otherUser }: ChatRoomProps) {
         currentUserId={currentUserId}
         loading={loading}
       />
+
+      {/* 發送失敗提示 */}
+      {sendError && (
+        <div className="flex-shrink-0 flex items-center gap-2 px-4 py-2 bg-red-950/80 border-t border-red-800/40 text-xs text-red-400">
+          <XCircle size={13} className="flex-shrink-0" />
+          {sendError}
+        </div>
+      )}
 
       {/* 訊息輸入 */}
       <MessageInput

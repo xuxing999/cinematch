@@ -13,7 +13,7 @@ export default function TestRealtimePage() {
   const addLog = (message: string) => {
     const timestamp = new Date().toLocaleTimeString('zh-TW', { hour12: false })
     setLogs(prev => [...prev, `[${timestamp}] ${message}`])
-    console.log(message)
+    // 日誌直接顯示於 DOM，不需要 console.log
   }
 
   useEffect(() => {
