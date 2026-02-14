@@ -6,6 +6,7 @@ import { RealtimeProvider } from '@/components/providers/RealtimeProvider'
 import Navbar from '@/components/layout/Navbar'
 import BottomNav from '@/components/layout/BottomNav'
 import DisclaimerModal from '@/components/ui/DisclaimerModal'
+import { GoogleAnalytics } from '@next/third-parties/google'
 
 const playfair = Playfair_Display({
   subsets: ['latin'],
@@ -51,6 +52,10 @@ export default function RootLayout({
             <DisclaimerModal />
           </RealtimeProvider>
         </AuthProvider>
+        {/* GA4 — 僅在設定測量 ID 後載入，async 不阻塞首屏渲染 */}
+        {process.env.NEXT_PUBLIC_GA_ID && (
+          <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID} />
+        )}
       </body>
     </html>
   )

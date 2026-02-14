@@ -13,6 +13,7 @@ import Modal from '@/components/ui/Modal'
 import Button from '@/components/ui/Button'
 import { Radio, Plus, Filter, RefreshCw } from 'lucide-react'
 import { cn } from '@/lib/utils/cn'
+import { trackPostSignal, trackStartChat } from '@/lib/utils/gtag'
 
 function LobbyContent() {
   const router = useRouter()
@@ -60,12 +61,16 @@ function LobbyContent() {
       alert('發布訊號失敗：' + error.message)
     } else {
       logger.log('✅ 發布成功:', data)
+      // GA4：成功發布訊號
+      trackPostSignal(formData.movie.title, formData.tag)
       alert('✅ 發布成功！訊號 ID: ' + data.id)
       setIsFormModalOpen(false)
     }
   }
 
   const handleContactUser = (signal: SignalWithProfile) => {
+    // GA4：點擊開始聊天
+    trackStartChat(signal.movie_title, signal.tag)
     router.push(`/chat/${signal.user_id}`)
   }
 
