@@ -26,6 +26,20 @@ export const metadata: Metadata = {
   description: '基於電影優惠與觀影意圖的快閃社交工具。找影伴，省錢看電影，24小時後訊息自動銷毀。',
   keywords: ['電影', '社交', '優惠', '揪團', '快閃', 'CineMatch'],
   authors: [{ name: 'CineMatch Team' }],
+  // ── Open Graph（分享圖由 app/opengraph-image.tsx 自動生成，無需手動指定路徑）──
+  openGraph: {
+    title: 'CineMatch 影伴',
+    description: '24小時快閃電影社交 · 找影伴 · 省錢看電影',
+    siteName: 'CineMatch',
+    locale: 'zh_TW',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'CineMatch 影伴',
+    description: '24小時快閃電影社交 · 找影伴 · 省錢看電影',
+  },
+  // ── Favicon 由 app/icon.tsx 自動生成，無需手動指定 ──
 }
 
 export const viewport: Viewport = {
