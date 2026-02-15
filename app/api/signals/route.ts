@@ -6,13 +6,15 @@ import { createClient } from '@/lib/supabase/server'
 
 /**
  * GET /api/signals
- * 取得所有訊號（24小時內）
+ * 取得所有訊號（24小時內），支援 movie_id / tag / location / intent 篩選
  */
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url)
-    const movieId = searchParams.get('movie_id')
-    const tag = searchParams.get('tag')
+    const movieId  = searchParams.get('movie_id')
+    const tag      = searchParams.get('tag')
+    const location = searchParams.get('location')
+    const intent   = searchParams.get('intent')
 
     const supabase = await createClient()
 
@@ -25,15 +27,10 @@ export async function GET(request: Request) {
       .eq('is_active', true)
       .order('created_at', { ascending: false })
 
-    // 過濾電影ID
-    if (movieId) {
-      query = query.eq('movie_id', parseInt(movieId))
-    }
-
-    // 過濾標籤
-    if (tag) {
-      query = query.eq('tag', tag)
-    }
+    if (movieId)  query = query.eq('movie_id', parseInt(movieId))
+    if (tag)      query = query.eq('tag', tag)
+    if (location) query = query.eq('location', location)
+    if (intent)   query = query.eq('intent', intent)
 
     const { data, error } = await query
 
@@ -51,13 +48,12 @@ export async function GET(request: Request) {
 
 /**
  * POST /api/signals
- * 建立新訊號
+ * 建立新訊號（含 location / intent / gender_age_label）
  */
 export async function POST(request: Request) {
   try {
     const supabase = await createClient()
 
-    // 檢查用戶認證
     const { data: { user } } = await supabase.auth.getUser()
     logger.log('POST /api/signals - User:', user?.id)
 
@@ -75,14 +71,17 @@ export async function POST(request: Request) {
     const { data, error } = await supabase
       .from('signals')
       .insert({
-        user_id: user.id,
-        movie_id: body.movie_id,
-        movie_title: body.movie_title,
-        movie_poster: body.movie_poster,
-        theater_name: body.theater_name,
-        showtime: body.showtime,
-        tag: body.tag,
-        note: body.note,
+        user_id:          user.id,
+        movie_id:         body.movie_id,
+        movie_title:      body.movie_title,
+        movie_poster:     body.movie_poster,
+        theater_name:     body.theater_name,
+        showtime:         body.showtime,
+        tag:              body.tag,
+        note:             body.note,
+        location:         body.location   || null,
+        intent:           body.intent     || null,
+        gender_age_label: body.gender_age_label || null,
       })
       .select(`
         *,

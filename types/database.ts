@@ -44,6 +44,9 @@ export type Database = {
           showtime: string | null
           tag: 'has_ticket' | 'seek_companion' | 'pure_watch' | 'want_discuss'
           note: string | null
+          location: string | null
+          intent: 'aa_split' | 'i_treat' | 'just_watch' | null
+          gender_age_label: string | null
           is_active: boolean
           created_at: string
         }
@@ -57,6 +60,9 @@ export type Database = {
           showtime?: string | null
           tag: 'has_ticket' | 'seek_companion' | 'pure_watch' | 'want_discuss'
           note?: string | null
+          location?: string | null
+          intent?: 'aa_split' | 'i_treat' | 'just_watch' | null
+          gender_age_label?: string | null
           is_active?: boolean
           created_at?: string
         }
@@ -70,6 +76,9 @@ export type Database = {
           showtime?: string | null
           tag?: 'has_ticket' | 'seek_companion' | 'pure_watch' | 'want_discuss'
           note?: string | null
+          location?: string | null
+          intent?: 'aa_split' | 'i_treat' | 'just_watch' | null
+          gender_age_label?: string | null
           is_active?: boolean
           created_at?: string
         }

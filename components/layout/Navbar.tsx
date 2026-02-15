@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Film, Radar, MessageSquare, User } from 'lucide-react'
+import { Film, Radar, MessageSquare, User, Info } from 'lucide-react'
 import { cn } from '@/lib/utils/cn'
 import { useAuthContext } from '@/components/providers/AuthProvider'
 import { useRealtimeContext } from '@/components/providers/RealtimeProvider'
@@ -12,6 +12,7 @@ const navItems = [
   { href: '/lobby',  label: '訊號大廳', icon: Film },
   { href: '/chat',   label: '快閃聊天', icon: MessageSquare },
   { href: '/profile',label: '個人資料', icon: User },
+  { href: '/about',  label: '關於',     icon: Info },
 ]
 
 export default function Navbar() {
