@@ -10,7 +10,8 @@ import Badge from '@/components/ui/Badge'
 import Avatar from '@/components/ui/Avatar'
 import Button from '@/components/ui/Button'
 import ReportModal from '@/components/ui/ReportModal'
-import { MapPin, Clock, MessageCircle, Trash2, Flag } from 'lucide-react'
+import { MapPin, Clock, MessageCircle, Trash2, Flag, Users } from 'lucide-react'
+import { SIGNAL_INTENTS } from '@/types/models'
 import { cn } from '@/lib/utils/cn'
 
 interface SignalCardProps {
@@ -94,7 +95,17 @@ export default function SignalCard({ signal, isOwner, onContact, onDelete }: Sig
 
           {/* 詳細資訊 */}
           <div className="space-y-1 mb-3">
-            {signal.theater_name && (
+            {/* 地區 */}
+            {signal.location && (
+              <div className="flex items-center gap-1.5 text-xs text-stone-400">
+                <MapPin size={12} className="text-neon-cyan flex-shrink-0" />
+                <span>{signal.location}</span>
+                {signal.theater_name && (
+                  <span className="text-stone-600">· {signal.theater_name}</span>
+                )}
+              </div>
+            )}
+            {!signal.location && signal.theater_name && (
               <div className="flex items-center gap-1.5 text-xs text-stone-400">
                 <MapPin size={12} className="text-neon-cyan flex-shrink-0" />
                 <span className="line-clamp-1">{signal.theater_name}</span>
@@ -104,6 +115,23 @@ export default function SignalCard({ signal, isOwner, onContact, onDelete }: Sig
               <div className="flex items-center gap-1.5 text-xs text-stone-400">
                 <Clock size={12} className="text-neon-purple flex-shrink-0" />
                 <span>{formatShowtime(signal.showtime)}</span>
+              </div>
+            )}
+            {/* 社交安排 & 性別年齡 */}
+            {(signal.intent || signal.gender_age_label) && (
+              <div className="flex items-center gap-2 flex-wrap">
+                {signal.intent && (
+                  <span className="inline-flex items-center gap-1 text-[11px] text-neon-cyan/80 bg-neon-cyan/8 border border-neon-cyan/20 rounded px-1.5 py-0.5">
+                    {SIGNAL_INTENTS[signal.intent as keyof typeof SIGNAL_INTENTS]?.emoji}
+                    {SIGNAL_INTENTS[signal.intent as keyof typeof SIGNAL_INTENTS]?.label}
+                  </span>
+                )}
+                {signal.gender_age_label && (
+                  <span className="inline-flex items-center gap-1 text-[11px] text-stone-500 bg-dark-100 border border-dark-50/40 rounded px-1.5 py-0.5">
+                    <Users size={10} />
+                    {signal.gender_age_label}
+                  </span>
+                )}
               </div>
             )}
             {signal.note && (

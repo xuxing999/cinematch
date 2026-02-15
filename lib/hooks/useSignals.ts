@@ -3,12 +3,14 @@
 
 import { logger } from '@/lib/utils/logger'
 import { useEffect, useState, useCallback, useRef } from 'react'
-import { SignalWithProfile, SignalTag } from '@/types/models'
+import { SignalWithProfile, SignalTag, SignalIntent } from '@/types/models'
 import { useSupabaseRealtime } from '@/lib/hooks/useSupabaseRealtime'
 
 interface UseSignalsOptions {
   movieId?: number
   tag?: SignalTag
+  location?: string
+  intent?: SignalIntent
   autoRefresh?: boolean
 }
 
@@ -18,7 +20,6 @@ export function useSignals(options: UseSignalsOptions = {}) {
   const [error, setError] = useState<Error | null>(null)
 
   // ─── 靜默刷新（不顯示 loading spinner，用於 Realtime 觸發） ──
-  // 使用 ref 記錄最新的 options，避免 stale closure
   const optionsRef = useRef(options)
   useEffect(() => {
     optionsRef.current = options
@@ -26,10 +27,12 @@ export function useSignals(options: UseSignalsOptions = {}) {
 
   const silentRefetch = useCallback(async () => {
     try {
-      const { movieId, tag } = optionsRef.current
+      const { movieId, tag, location, intent } = optionsRef.current
       const params = new URLSearchParams()
-      if (movieId) params.append('movie_id', movieId.toString())
-      if (tag) params.append('tag', tag)
+      if (movieId)  params.append('movie_id', movieId.toString())
+      if (tag)      params.append('tag', tag)
+      if (location) params.append('location', location)
+      if (intent)   params.append('intent', intent)
       const response = await fetch(`/api/signals?${params.toString()}`)
       if (!response.ok) return
       const data = await response.json()
@@ -41,8 +44,6 @@ export function useSignals(options: UseSignalsOptions = {}) {
   }, [])
 
   // ─── Realtime 訂閱：signals 表有 INSERT/DELETE 就立即刷新 ────
-  // signals 的 RLS SELECT 是公開的（不依賴 auth.uid()），
-  // 所以 iOS Safari 的 JWT 問題不影響此訂閱。
   useSupabaseRealtime({
     channelName: 'signals-lobby-global',
     table: 'signals',
@@ -63,11 +64,13 @@ export function useSignals(options: UseSignalsOptions = {}) {
       setError(null)
 
       const params = new URLSearchParams()
-      if (options.movieId) params.append('movie_id', options.movieId.toString())
-      if (options.tag) params.append('tag', options.tag)
+      if (options.movieId)  params.append('movie_id', options.movieId.toString())
+      if (options.tag)      params.append('tag', options.tag)
+      if (options.location) params.append('location', options.location)
+      if (options.intent)   params.append('intent', options.intent)
 
       const url = `/api/signals?${params.toString()}`
-      logger.log('📡 useSignals: 獲取訊號', { url, movieId: options.movieId, tag: options.tag })
+      logger.log('📡 useSignals: 獲取訊號', { url })
 
       const response = await fetch(url)
 
@@ -76,7 +79,7 @@ export function useSignals(options: UseSignalsOptions = {}) {
       }
 
       const data = await response.json()
-      logger.log('📊 useSignals: 收到訊號', { count: data.length, signals: data })
+      logger.log('📊 useSignals: 收到訊號', { count: data.length })
       setSignals(data)
     } catch (err) {
       setError(err instanceof Error ? err : new Error('Unknown error'))
@@ -94,13 +97,14 @@ export function useSignals(options: UseSignalsOptions = {}) {
     theater_name?: string
     showtime?: string
     note?: string
+    location?: string
+    intent?: SignalIntent
+    gender_age_label?: string
   }) => {
     try {
       const response = await fetch('/api/signals', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(signalData),
       })
 
@@ -111,8 +115,6 @@ export function useSignals(options: UseSignalsOptions = {}) {
       const newSignal = await response.json()
       logger.log('✅ useSignals: 訊號建立成功', newSignal.id)
 
-      // 重新獲取訊號列表
-      logger.log('🔄 useSignals: 重新獲取訊號列表...')
       await fetchSignals()
 
       return { data: newSignal, error: null }
@@ -132,7 +134,6 @@ export function useSignals(options: UseSignalsOptions = {}) {
         throw new Error('Failed to delete signal')
       }
 
-      // 從本地狀態中移除
       setSignals(signals.filter((s) => s.id !== signalId))
 
       return { error: null }
@@ -145,12 +146,11 @@ export function useSignals(options: UseSignalsOptions = {}) {
   useEffect(() => {
     fetchSignals()
 
-    // 自動刷新（每 30 秒）
     if (options.autoRefresh) {
       const interval = setInterval(fetchSignals, 30000)
       return () => clearInterval(interval)
     }
-  }, [options.movieId, options.tag])
+  }, [options.movieId, options.tag, options.location, options.intent])
 
   return {
     signals,
